@@ -180,6 +180,375 @@ def calculate_coins(distance_km: float) -> int:
     """Calculate WalkCoins based on distance (1 coin per 0.5km)"""
     return int(distance_km * 2)
 
+# Achievement definitions
+ACHIEVEMENTS = [
+    # Distance Achievements
+    {
+        "id": "first_steps",
+        "name": "First Steps",
+        "description": "Complete your first walk",
+        "category": "distance",
+        "tier": "bronze",
+        "icon": "👶",
+        "criteria": {"walks_completed": 1},
+        "points": 10
+    },
+    {
+        "id": "kilometer_king",
+        "name": "Kilometer King",
+        "description": "Walk a total of 10 kilometers",
+        "category": "distance",
+        "tier": "bronze",
+        "icon": "🚶",
+        "criteria": {"total_distance_km": 10},
+        "points": 25
+    },
+    {
+        "id": "distance_champion",
+        "name": "Distance Champion",
+        "description": "Walk a total of 50 kilometers",
+        "category": "distance",
+        "tier": "silver",
+        "icon": "🏃‍♂️",
+        "criteria": {"total_distance_km": 50},
+        "points": 100
+    },
+    {
+        "id": "marathon_walker",
+        "name": "Marathon Walker",
+        "description": "Walk a total of 100 kilometers",
+        "category": "distance",
+        "tier": "gold",
+        "icon": "🏆",
+        "criteria": {"total_distance_km": 100},
+        "points": 250
+    },
+    {
+        "id": "ultra_walker",
+        "name": "Ultra Walker",
+        "description": "Walk a total of 500 kilometers",
+        "category": "distance",
+        "tier": "platinum",
+        "icon": "💎",
+        "criteria": {"total_distance_km": 500},
+        "points": 1000
+    },
+    
+    # Explorer Achievements
+    {
+        "id": "city_explorer",
+        "name": "City Explorer",
+        "description": "Walk in 2 different cities",
+        "category": "explorer",
+        "tier": "bronze",
+        "icon": "🏙️",
+        "criteria": {"cities_visited": 2},
+        "points": 30
+    },
+    {
+        "id": "multi_city_walker",
+        "name": "Multi-City Walker",
+        "description": "Walk in all 3 supported cities",
+        "category": "explorer",
+        "tier": "silver",
+        "icon": "🗺️",
+        "criteria": {"cities_visited": 3},
+        "points": 75
+    },
+    {
+        "id": "local_expert",
+        "name": "Local Expert",
+        "description": "Complete 20 walks in the same city",
+        "category": "explorer",
+        "tier": "gold",
+        "icon": "🧭",
+        "criteria": {"walks_in_single_city": 20},
+        "points": 150
+    },
+    
+    # Social Achievements
+    {
+        "id": "friendship_builder",
+        "name": "Friendship Builder",
+        "description": "Add your first friend",
+        "category": "social",
+        "tier": "bronze",
+        "icon": "👥",
+        "criteria": {"friends_count": 1},
+        "points": 20
+    },
+    {
+        "id": "social_butterfly",
+        "name": "Social Butterfly",
+        "description": "Have 5 friends on GoWalking",
+        "category": "social",
+        "tier": "silver",
+        "icon": "🦋",
+        "criteria": {"friends_count": 5},
+        "points": 75
+    },
+    {
+        "id": "walk_organizer",
+        "name": "Walk Organizer",
+        "description": "Send 10 walk invitations",
+        "category": "social",
+        "tier": "gold",
+        "icon": "📝",
+        "criteria": {"walk_invitations_sent": 10},
+        "points": 100
+    },
+    
+    # Business Achievements
+    {
+        "id": "local_supporter",
+        "name": "Local Supporter",
+        "description": "Visit 5 local businesses",
+        "category": "business",
+        "tier": "bronze",
+        "icon": "🏪",
+        "criteria": {"businesses_visited": 5},
+        "points": 30
+    },
+    {
+        "id": "discount_hunter",
+        "name": "Discount Hunter",
+        "description": "Redeem 3 business offers",
+        "category": "business",
+        "tier": "silver",
+        "icon": "🎯",
+        "criteria": {"offers_redeemed": 3},
+        "points": 50
+    },
+    
+    # Streak Achievements
+    {
+        "id": "consistency_king",
+        "name": "Consistency King",
+        "description": "Walk for 3 consecutive days",
+        "category": "streak",
+        "tier": "bronze",
+        "icon": "🔥",
+        "criteria": {"consecutive_days": 3},
+        "points": 40
+    },
+    {
+        "id": "weekly_warrior",
+        "name": "Weekly Warrior",
+        "description": "Walk for 7 consecutive days",
+        "category": "streak",
+        "tier": "silver",
+        "icon": "⚡",
+        "criteria": {"consecutive_days": 7},
+        "points": 100
+    },
+    {
+        "id": "daily_devotee",
+        "name": "Daily Devotee",
+        "description": "Walk for 30 consecutive days",
+        "category": "streak",
+        "tier": "gold",
+        "icon": "🏅",
+        "criteria": {"consecutive_days": 30},
+        "points": 300
+    },
+    
+    # Coin Achievements
+    {
+        "id": "coin_collector",
+        "name": "Coin Collector",
+        "description": "Earn 100 WalkCoins",
+        "category": "coins",
+        "tier": "bronze",
+        "icon": "🪙",
+        "criteria": {"total_coins_earned": 100},
+        "points": 25
+    },
+    {
+        "id": "treasure_hunter",
+        "name": "Treasure Hunter",
+        "description": "Earn 500 WalkCoins",
+        "category": "coins",
+        "tier": "silver",
+        "icon": "💰",
+        "criteria": {"total_coins_earned": 500},
+        "points": 100
+    },
+    {
+        "id": "coin_master",
+        "name": "Coin Master",
+        "description": "Earn 1000 WalkCoins",
+        "category": "coins",
+        "tier": "gold",
+        "icon": "👑",
+        "criteria": {"total_coins_earned": 1000},
+        "points": 250
+    }
+]
+
+async def initialize_achievements():
+    """Initialize achievements in database if they don't exist"""
+    for achievement_data in ACHIEVEMENTS:
+        existing = await db.achievements.find_one({"id": achievement_data["id"]})
+        if not existing:
+            achievement = Achievement(**achievement_data)
+            await db.achievements.insert_one(achievement.dict())
+
+async def check_and_award_achievements(user_id: str):
+    """Check if user has earned any new achievements"""
+    # Get user stats
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        return []
+    
+    # Get user's walks for additional stats
+    walks = await db.walks.find({"user_id": user_id}).to_list(1000)
+    friends = await db.friendships.find({
+        "$or": [{"user1_id": user_id}, {"user2_id": user_id}]
+    }).to_list(1000)
+    walk_invitations = await db.walk_invitations.find({"sender_id": user_id}).to_list(1000)
+    
+    # Calculate stats
+    stats = {
+        "walks_completed": len(walks),
+        "total_distance_km": user.get("total_distance_km", 0),
+        "cities_visited": len(set(walk["city"] for walk in walks)),
+        "friends_count": len(friends),
+        "walk_invitations_sent": len(walk_invitations),
+        "total_coins_earned": user.get("walk_coins", 0),
+        "businesses_visited": 0,  # TODO: implement business visit tracking
+        "offers_redeemed": 0,     # TODO: implement offer redemption tracking
+        "consecutive_days": 0,    # TODO: implement streak calculation
+    }
+    
+    # Calculate walks in single city
+    city_counts = {}
+    for walk in walks:
+        city = walk["city"]
+        city_counts[city] = city_counts.get(city, 0) + 1
+    stats["walks_in_single_city"] = max(city_counts.values()) if city_counts else 0
+    
+    # Get existing user achievements
+    existing_achievements = await db.user_achievements.find({"user_id": user_id}).to_list(1000)
+    existing_achievement_ids = {ach["achievement_id"] for ach in existing_achievements}
+    
+    new_achievements = []
+    
+    # Check each achievement
+    for achievement_data in ACHIEVEMENTS:
+        achievement_id = achievement_data["id"]
+        
+        # Skip if already earned
+        if achievement_id in existing_achievement_ids:
+            continue
+        
+        # Check if criteria is met
+        criteria_met = True
+        for criteria_key, criteria_value in achievement_data["criteria"].items():
+            if stats.get(criteria_key, 0) < criteria_value:
+                criteria_met = False
+                break
+        
+        if criteria_met:
+            # Award achievement
+            user_achievement = UserAchievement(
+                user_id=user_id,
+                achievement_id=achievement_id,
+                achievement_name=achievement_data["name"],
+                achievement_description=achievement_data["description"],
+                achievement_icon=achievement_data["icon"],
+                achievement_tier=achievement_data["tier"],
+                achievement_category=achievement_data["category"],
+                achievement_points=achievement_data["points"]
+            )
+            
+            await db.user_achievements.insert_one(user_achievement.dict())
+            new_achievements.append(user_achievement)
+    
+    return new_achievements
+
+async def get_achievement_progress(user_id: str):
+    """Get user's progress toward all achievements"""
+    # Get user stats (same calculation as above)
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        return []
+    
+    walks = await db.walks.find({"user_id": user_id}).to_list(1000)
+    friends = await db.friendships.find({
+        "$or": [{"user1_id": user_id}, {"user2_id": user_id}]
+    }).to_list(1000)
+    walk_invitations = await db.walk_invitations.find({"sender_id": user_id}).to_list(1000)
+    
+    stats = {
+        "walks_completed": len(walks),
+        "total_distance_km": user.get("total_distance_km", 0),
+        "cities_visited": len(set(walk["city"] for walk in walks)),
+        "friends_count": len(friends),
+        "walk_invitations_sent": len(walk_invitations),
+        "total_coins_earned": user.get("walk_coins", 0),
+        "businesses_visited": 0,
+        "offers_redeemed": 0,
+        "consecutive_days": 0,
+    }
+    
+    city_counts = {}
+    for walk in walks:
+        city = walk["city"]
+        city_counts[city] = city_counts.get(city, 0) + 1
+    stats["walks_in_single_city"] = max(city_counts.values()) if city_counts else 0
+    
+    # Get completed achievements
+    completed_achievements = await db.user_achievements.find({"user_id": user_id}).to_list(1000)
+    completed_ids = {ach["achievement_id"] for ach in completed_achievements}
+    
+    progress_list = []
+    
+    for achievement_data in ACHIEVEMENTS:
+        achievement_id = achievement_data["id"]
+        is_completed = achievement_id in completed_ids
+        
+        if is_completed:
+            progress = AchievementProgress(
+                achievement_id=achievement_id,
+                achievement_name=achievement_data["name"],
+                description=achievement_data["description"],
+                category=achievement_data["category"],
+                tier=achievement_data["tier"],
+                icon=achievement_data["icon"],
+                points=achievement_data["points"],
+                current_progress=100.0,
+                target_value=0,
+                current_value=0,
+                progress_percentage=100.0,
+                is_completed=True
+            )
+        else:
+            # Calculate progress for incomplete achievements
+            criteria = achievement_data["criteria"]
+            criteria_key = list(criteria.keys())[0]  # Assuming single criteria per achievement
+            target_value = criteria[criteria_key]
+            current_value = stats.get(criteria_key, 0)
+            progress_percentage = min((current_value / target_value) * 100, 100) if target_value > 0 else 0
+            
+            progress = AchievementProgress(
+                achievement_id=achievement_id,
+                achievement_name=achievement_data["name"],
+                description=achievement_data["description"],
+                category=achievement_data["category"],
+                tier=achievement_data["tier"],
+                icon=achievement_data["icon"],
+                points=achievement_data["points"],
+                current_progress=progress_percentage,
+                target_value=target_value,
+                current_value=current_value,
+                progress_percentage=progress_percentage,
+                is_completed=False
+            )
+        
+        progress_list.append(progress)
+    
+    return progress_list
+
 async def get_cached_pois(city: str, amenity_type: str):
     """Check if we have cached POI data"""
     cached = await db.cached_pois.find_one({
