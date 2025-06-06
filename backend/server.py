@@ -760,6 +760,14 @@ async def create_walk(walk_data: WalkCreate):
         }
     )
     
+    # Check for new achievements
+    try:
+        new_achievements = await check_and_award_achievements(walk_data.user_id)
+        if new_achievements:
+            walk.new_achievements = [ach.dict() for ach in new_achievements]
+    except Exception as e:
+        print(f"Error checking achievements: {e}")
+    
     return walk
 
 @api_router.get("/walks/user/{user_id}", response_model=List[Walk])
