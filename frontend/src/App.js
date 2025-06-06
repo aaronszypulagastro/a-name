@@ -663,6 +663,169 @@ function App() {
         </div>
       )}
     </div>
+
+      {/* Friends Modal */}
+      {showFriends && currentUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">👥 Friends & Invitations</h2>
+              <button
+                onClick={() => setShowFriends(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* Add Friend */}
+            <div className="mb-4 p-3 bg-blue-50 rounded">
+              <h3 className="font-semibold mb-2">Add Friend</h3>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  placeholder="Friend's email"
+                  value={newFriendEmail}
+                  onChange={(e) => setNewFriendEmail(e.target.value)}
+                  className="flex-1 p-2 border rounded"
+                />
+                <button
+                  onClick={sendFriendRequest}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                >
+                  Send Request
+                </button>
+              </div>
+            </div>
+
+            {/* Friend Requests */}
+            {friendRequests.received.length > 0 && (
+              <div className="mb-4">
+                <h3 className="font-semibold mb-2">📨 Friend Requests</h3>
+                {friendRequests.received.map((request) => (
+                  <div key={request.id} className="flex justify-between items-center p-2 bg-yellow-50 rounded mb-2">
+                    <span>{request.sender_name}</span>
+                    <div className="space-x-2">
+                      <button
+                        onClick={() => respondToFriendRequest(request.id, 'accept')}
+                        className="bg-green-500 text-white px-3 py-1 rounded text-sm"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => respondToFriendRequest(request.id, 'decline')}
+                        className="bg-red-500 text-white px-3 py-1 rounded text-sm"
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Walk Invitations */}
+            {walkInvitations.received.length > 0 && (
+              <div className="mb-4">
+                <h3 className="font-semibold mb-2">🚶‍♂️ Walk Invitations</h3>
+                {walkInvitations.received.map((invitation) => (
+                  <div key={invitation.id} className="p-3 bg-green-50 rounded mb-2">
+                    <div className="font-semibold">{invitation.sender_name} invites you to walk</div>
+                    <div className="text-sm text-gray-600">
+                      {invitation.route_name} in {invitation.city} • {invitation.distance_km}km
+                    </div>
+                    {invitation.message && (
+                      <div className="text-sm italic">"{invitation.message}"</div>
+                    )}
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => respondToWalkInvitation(invitation.id, 'accept')}
+                        className="bg-green-500 text-white px-3 py-1 rounded text-sm"
+                      >
+                        Accept & Load Route
+                      </button>
+                      <button
+                        onClick={() => respondToWalkInvitation(invitation.id, 'decline')}
+                        className="bg-red-500 text-white px-3 py-1 rounded text-sm"
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Friends List */}
+            <div className="mb-4">
+              <h3 className="font-semibold mb-2">👫 Your Friends ({friends.length})</h3>
+              <div className="space-y-2">
+                {friends.map((friend) => (
+                  <div key={friend.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                    <div>
+                      <div className="font-semibold">{friend.name}</div>
+                      <div className="text-sm text-gray-600">
+                        🪙 {friend.walk_coins} • 📏 {friend.total_distance_km?.toFixed(1) || 0}km
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Invite Friend Modal */}
+      {showInviteFriend && currentRoute && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">👥 Invite Friend to Walk</h2>
+              <button
+                onClick={() => setShowInviteFriend(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="mb-4 p-3 bg-blue-50 rounded">
+              <h3 className="font-semibold">Route Details</h3>
+              <div className="text-sm">
+                <div>Distance: {currentRoute.distance_km} km</div>
+                <div>Duration: ~{currentRoute.duration_minutes} min</div>
+                <div>City: {selectedCity}</div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="font-semibold">Choose a friend:</h3>
+              {friends.map((friend) => (
+                <button
+                  key={friend.id}
+                  onClick={() => inviteFriendToWalk(friend.id)}
+                  className="w-full p-3 bg-gray-50 hover:bg-blue-50 rounded text-left"
+                >
+                  <div className="font-semibold">{friend.name}</div>
+                  <div className="text-sm text-gray-600">
+                    🪙 {friend.walk_coins} • 📏 {friend.total_distance_km?.toFixed(1) || 0}km
+                  </div>
+                </button>
+              ))}
+            </div>
+            
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => setShowInviteFriend(false)}
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
   );
 }
 
