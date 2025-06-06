@@ -572,16 +572,16 @@ async def get_walk_invitations(user_id: str):
     }
 
 @api_router.post("/walk-invitations/respond/{invitation_id}")
-async def respond_to_walk_invitation(invitation_id: str, action: str):
+async def respond_to_walk_invitation(invitation_id: str, action: str = Query(...)):
     if action not in ["accept", "decline"]:
         raise HTTPException(status_code=400, detail="Action must be 'accept' or 'decline'")
     
     # Find invitation
-    invitation = await db.walk_invitations.find_one({"id": invitation_id})
-    if not invitation:
+    invitation_doc = await db.walk_invitations.find_one({"id": invitation_id})
+    if not invitation_doc:
         raise HTTPException(status_code=404, detail="Walk invitation not found")
     
-    if invitation["status"] != "pending":
+    if invitation_doc["status"] != "pending":
         raise HTTPException(status_code=400, detail="Invitation already processed")
     
     # Update invitation status
@@ -591,7 +591,13 @@ async def respond_to_walk_invitation(invitation_id: str, action: str):
         {"$set": {"status": new_status}}
     )
     
-    return {"success": True, "action": action, "invitation": invitation}
+    # Convert MongoDB document to regular dict for JSON serialization
+    invitation_dict = {}
+    for key, value in invitation_doc.items():
+        if key != "_id":  # Skip MongoDB ObjectId
+            invitation_dict[key] = value
+    
+    return {"success": True, "action": action, "invitation": invitation_dict}
 
 @api_router.get("/friends/activity/{user_id}")
 async def get_friends_activity(user_id: str):
