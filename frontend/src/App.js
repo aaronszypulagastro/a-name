@@ -683,6 +683,29 @@ function App() {
                 )}
               </button>
               <button
+                onClick={() => setShowSocial(!showSocial)}
+                className="bg-purple-500 hover:bg-purple-600 px-3 py-2 rounded relative"
+              >
+                📱 Social
+                {socialFeed.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-pink-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                    {socialFeed.length}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setShowGroups(!showGroups)}
+                className="bg-green-500 hover:bg-green-600 px-3 py-2 rounded"
+              >
+                👥 Groups
+              </button>
+              <button
+                onClick={() => setShowChallenges(!showChallenges)}
+                className="bg-red-500 hover:bg-red-600 px-3 py-2 rounded"
+              >
+                🏃‍♂️ Challenges
+              </button>
+              <button
                 onClick={() => setShowProfile(!showProfile)}
                 className="bg-blue-500 hover:bg-blue-700 px-3 py-2 rounded"
               >
