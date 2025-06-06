@@ -1,38 +1,213 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f8fafc;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+}
+
 .App {
-    text-align: center;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
 }
 
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* Leaflet map styling */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  font-family: 'Inter', sans-serif;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.leaflet-popup-content {
+  margin: 0;
+  padding: 0;
 }
 
-.App-link {
-    color: #61dafb;
+.leaflet-popup-tip {
+  background: white;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+/* Custom button styles */
+button {
+  transition: all 0.2s ease-in-out;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Animation for route planning */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.walking-indicator {
+  animation: pulse 2s infinite;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .w-80 {
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    height: auto;
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+  
+  .flex-1 {
+    margin-top: 50vh;
+  }
+}
+
+/* Loading animation */
+.loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255,255,255,.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Success animation */
+.success-bounce {
+  animation: bounce 0.6s ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0,0,0);
+  }
+  40%, 43% {
+    transform: translate3d(0,-8px,0);
+  }
+  70% {
+    transform: translate3d(0,-4px,0);
+  }
+  90% {
+    transform: translate3d(0,-2px,0);
+  }
+}
+
+/* Card styles */
+.card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #e2e8f0;
+}
+
+.card-hover {
+  transition: all 0.2s ease-in-out;
+}
+
+.card-hover:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.text-muted {
+  color: #64748b;
+}
+
+/* Utility classes */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Status indicators */
+.status-online {
+  color: #10b981;
+}
+
+.status-offline {
+  color: #ef4444;
+}
+
+.status-walking {
+  color: #f59e0b;
 }
