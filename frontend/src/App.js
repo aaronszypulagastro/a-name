@@ -146,19 +146,26 @@ function App() {
 
   // Handle map clicks for route planning
   const handleMapClick = (e) => {
-    if (isWalking) return; // Don't allow route changes while walking
+    if (isWalking) {
+      console.log('Cannot add waypoints while walking');
+      return; // Don't allow route changes while walking
+    }
 
     const newPoint = { lat: e.latlng.lat, lng: e.latlng.lng };
+    console.log('Adding waypoint:', newPoint);
     
     if (waypoints.length < 2) {
       const newWaypoints = [...waypoints, newPoint];
+      console.log('New waypoints:', newWaypoints);
       setWaypoints(newWaypoints);
       
       if (newWaypoints.length === 2) {
+        console.log('Two waypoints set, calculating route...');
         calculateRoute(newWaypoints[0], newWaypoints[1]);
       }
     } else {
       // Reset and start new route
+      console.log('Resetting route, starting with new point');
       setWaypoints([newPoint]);
       setCurrentRoute(null);
     }
