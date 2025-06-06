@@ -1717,23 +1717,33 @@ function App() {
         </div>
       )}
 
-      {/* New Achievement Alert */}
+      {/* Modern Achievement Unlock Alert */}
       {newAchievementAlert && (
-        <div className="fixed top-20 right-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white p-4 rounded-lg shadow-lg z-50 max-w-sm">
-          <div className="flex items-center gap-3">
-            <div className="text-3xl">{newAchievementAlert.achievement_icon}</div>
-            <div>
-              <div className="font-bold">Achievement Unlocked!</div>
-              <div className="text-sm">{newAchievementAlert.achievement_name}</div>
-              <div className="text-xs opacity-90">{newAchievementAlert.achievement_description}</div>
+        <div className="fixed top-20 right-4 z-50 max-w-sm achievement-unlock">
+          <div className="modern-card bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-white p-6 shadow-heavy">
+            <div className="flex items-center gap-4">
+              <div className="text-4xl floating">{newAchievementAlert.achievement_icon}</div>
+              <div className="flex-1">
+                <div className="font-bold text-lg mb-1">🎉 Achievement Unlocked!</div>
+                <div className="font-semibold">{newAchievementAlert.achievement_name}</div>
+                <div className="text-sm opacity-90">{newAchievementAlert.achievement_description}</div>
+                <div className="text-xs opacity-75 mt-2 flex items-center gap-2">
+                  <span>+{newAchievementAlert.achievement_points} points</span>
+                  <span className="w-1 h-1 bg-white rounded-full"></span>
+                  <span className="capitalize">{newAchievementAlert.achievement_tier} tier</span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => setNewAchievementAlert(null)}
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 flex items-center justify-center transition-all duration-300"
+            >
+              <span className="text-white font-bold">✕</span>
+            </button>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-white bg-opacity-30">
+              <div className="h-full bg-white bg-opacity-60 animate-pulse"></div>
             </div>
           </div>
-          <button
-            onClick={() => setNewAchievementAlert(null)}
-            className="absolute top-2 right-2 text-white hover:text-gray-200"
-          >
-            ✕
-          </button>
         </div>
       )}
     </div>
