@@ -392,7 +392,10 @@ async def geocode_address(address: str):
 
 # Friend Management Endpoints
 @api_router.post("/friends/request", response_model=FriendRequest)
-async def send_friend_request(request: FriendRequestCreate, current_user_id: str):
+async def send_friend_request(request: FriendRequestCreate, current_user_id: str = None):
+    if not current_user_id:
+        raise HTTPException(status_code=400, detail="current_user_id is required")
+        
     # Find receiver by email
     receiver = await db.users.find_one({"email": request.receiver_email})
     if not receiver:
