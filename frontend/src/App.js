@@ -147,17 +147,24 @@ function App() {
   // Calculate route
   const calculateRoute = async (start, end) => {
     try {
+      console.log('Calculating route from', start, 'to', end);
       const response = await axios.post(`${API}/route/calculate`, {
         start: [start.lng, start.lat],
         end: [end.lng, end.lat],
         city: selectedCity
       });
       
+      console.log('Route response:', response.data);
+      
       if (response.data.success) {
         setCurrentRoute(response.data);
+        console.log('Route set successfully:', response.data);
+      } else {
+        console.error('Route calculation failed:', response.data);
       }
     } catch (error) {
       console.error('Error calculating route:', error);
+      console.error('Error response:', error.response?.data);
     }
   };
 
