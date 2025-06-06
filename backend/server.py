@@ -51,6 +51,7 @@ class Walk(BaseModel):
     end_point: List[float]    # [lng, lat]
     city: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    new_achievements: Optional[List[dict]] = None
 
 class WalkCreate(BaseModel):
     user_id: str
