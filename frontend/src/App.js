@@ -93,6 +93,24 @@ function App() {
   const [achievementProgress, setAchievementProgress] = useState([]);
   const [achievementStats, setAchievementStats] = useState(null);
   const [newAchievementAlert, setNewAchievementAlert] = useState(null);
+  const [showSocial, setShowSocial] = useState(false);
+  const [showGroups, setShowGroups] = useState(false);
+  const [showChallenges, setShowChallenges] = useState(false);
+  const [socialFeed, setSocialFeed] = useState([]);
+  const [walkingGroups, setWalkingGroups] = useState([]);
+  const [userGroups, setUserGroups] = useState([]);
+  const [challenges, setChallenges] = useState([]);
+  const [userChallenges, setUserChallenges] = useState([]);
+  const [newPostContent, setNewPostContent] = useState('');
+  const [newGroupData, setNewGroupData] = useState({ name: '', description: '', city: selectedCity });
+  const [newChallengeData, setNewChallengeData] = useState({
+    title: '',
+    description: '',
+    challenge_type: 'distance',
+    target_value: 10,
+    unit: 'km',
+    duration_days: 7
+  });
 
   const cityCenters = {
     regensburg: { lat: 49.03, lng: 12.12 },
