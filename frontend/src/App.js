@@ -271,6 +271,146 @@ function App() {
     }
   };
 
+  // Enhanced Social Features Functions
+  const fetchSocialFeed = async () => {
+    if (!currentUser) return;
+    try {
+      const response = await axios.get(`${API}/social/feed/${currentUser.id}`);
+      setSocialFeed(response.data);
+    } catch (error) {
+      console.error('Error fetching social feed:', error);
+    }
+  };
+
+  const fetchWalkingGroups = async () => {
+    try {
+      const response = await axios.get(`${API}/groups?city=${selectedCity}`);
+      setWalkingGroups(response.data);
+    } catch (error) {
+      console.error('Error fetching walking groups:', error);
+    }
+  };
+
+  const fetchUserGroups = async () => {
+    if (!currentUser) return;
+    try {
+      const response = await axios.get(`${API}/groups/user/${currentUser.id}`);
+      setUserGroups(response.data);
+    } catch (error) {
+      console.error('Error fetching user groups:', error);
+    }
+  };
+
+  const fetchChallenges = async () => {
+    try {
+      const response = await axios.get(`${API}/challenges`);
+      setChallenges(response.data);
+    } catch (error) {
+      console.error('Error fetching challenges:', error);
+    }
+  };
+
+  const createWalkingGroup = async () => {
+    if (!currentUser || !newGroupData.name || !newGroupData.description) {
+      alert('Please fill in all group details');
+      return;
+    }
+
+    try {
+      await axios.post(`${API}/groups?creator_id=${currentUser.id}`, {
+        ...newGroupData,
+        city: selectedCity
+      });
+      
+      setNewGroupData({ name: '', description: '', city: selectedCity });
+      fetchWalkingGroups();
+      fetchUserGroups();
+      alert('Walking group created successfully!');
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Error creating group');
+    }
+  };
+
+  const joinWalkingGroup = async (groupId) => {
+    if (!currentUser) return;
+    
+    try {
+      await axios.post(`${API}/groups/${groupId}/join?user_id=${currentUser.id}`);
+      fetchWalkingGroups();
+      fetchUserGroups();
+      alert('Joined group successfully!');
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Error joining group');
+    }
+  };
+
+  const createChallenge = async () => {
+    if (!currentUser || !newChallengeData.title) {
+      alert('Please fill in challenge details');
+      return;
+    }
+
+    try {
+      await axios.post(`${API}/challenges?creator_id=${currentUser.id}`, newChallengeData);
+      
+      setNewChallengeData({
+        title: '',
+        description: '',
+        challenge_type: 'distance',
+        target_value: 10,
+        unit: 'km',
+        duration_days: 7
+      });
+      fetchChallenges();
+      alert('Challenge created successfully!');
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Error creating challenge');
+    }
+  };
+
+  const joinChallenge = async (challengeId) => {
+    if (!currentUser) return;
+    
+    try {
+      await axios.post(`${API}/challenges/${challengeId}/join?user_id=${currentUser.id}`);
+      fetchChallenges();
+      alert('Joined challenge successfully!');
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Error joining challenge');
+    }
+  };
+
+  const createSocialPost = async () => {
+    if (!currentUser || !newPostContent.trim()) {
+      alert('Please enter post content');
+      return;
+    }
+
+    try {
+      await axios.post(`${API}/social/posts?user_id=${currentUser.id}`, {
+        post_type: 'general',
+        content: newPostContent
+      });
+      
+      setNewPostContent('');
+      fetchSocialFeed();
+      alert('Post shared successfully!');
+    } catch (error) {
+      alert('Error creating post');
+    }
+  };
+
+  const likePost = async (postId) => {
+    if (!currentUser) return;
+    
+    try {
+      await axios.post(`${API}/social/posts/${postId}/like?user_id=${currentUser.id}`);
+      fetchSocialFeed();
+    } catch (error) {
+      console.error('Error liking post:', error);
+    }
+  };
+
   const sendFriendRequest = async () => {
     if (!newFriendEmail || !currentUser) {
       alert('Please enter an email address');
