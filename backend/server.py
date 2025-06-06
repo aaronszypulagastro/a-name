@@ -1250,6 +1250,272 @@ async def get_achievement_stats(user_id: str):
         "available_achievements": len(ACHIEVEMENTS)
     }
 
+# Enhanced Social Features Endpoints
+
+# Walking Groups
+@api_router.post("/groups", response_model=WalkingGroup)
+async def create_walking_group(group_data: WalkingGroupCreate, creator_id: str = Query(...)):
+    # Get creator info
+    creator = await db.users.find_one({"id": creator_id})
+    if not creator:
+        raise HTTPException(status_code=404, detail="Creator not found")
+    
+    # Create group
+    group = WalkingGroup(
+        creator_id=creator_id,
+        creator_name=creator["name"],
+        **group_data.dict()
+    )
+    
+    await db.walking_groups.insert_one(group.dict())
+    
+    # Add creator as member
+    membership = GroupMembership(
+        group_id=group.id,
+        user_id=creator_id,
+        user_name=creator["name"],
+        role="creator"
+    )
+    await db.group_memberships.insert_one(membership.dict())
+    
+    return group
+
+@api_router.get("/groups")
+async def get_walking_groups(city: str = None, limit: int = 20):
+    query = {}
+    if city:
+        query["city"] = city
+    query["is_public"] = True
+    
+    groups = await db.walking_groups.find(query).sort("created_at", -1).limit(limit).to_list(limit)
+    return [WalkingGroup(**group) for group in groups]
+
+@api_router.get("/groups/{group_id}")
+async def get_walking_group(group_id: str):
+    group = await db.walking_groups.find_one({"id": group_id})
+    if not group:
+        raise HTTPException(status_code=404, detail="Group not found")
+    
+    # Get members
+    memberships = await db.group_memberships.find({"group_id": group_id}).to_list(100)
+    group["members"] = [GroupMembership(**membership) for membership in memberships]
+    
+    return group
+
+@api_router.post("/groups/{group_id}/join")
+async def join_walking_group(group_id: str, user_id: str = Query(...)):
+    # Check if group exists
+    group = await db.walking_groups.find_one({"id": group_id})
+    if not group:
+        raise HTTPException(status_code=404, detail="Group not found")
+    
+    # Check if already a member
+    existing = await db.group_memberships.find_one({"group_id": group_id, "user_id": user_id})
+    if existing:
+        raise HTTPException(status_code=400, detail="Already a member")
+    
+    # Check group capacity
+    if group["member_count"] >= group["max_members"]:
+        raise HTTPException(status_code=400, detail="Group is full")
+    
+    # Get user info
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Add membership
+    membership = GroupMembership(
+        group_id=group_id,
+        user_id=user_id,
+        user_name=user["name"]
+    )
+    await db.group_memberships.insert_one(membership.dict())
+    
+    # Update group member count
+    await db.walking_groups.update_one(
+        {"id": group_id},
+        {"$inc": {"member_count": 1}}
+    )
+    
+    return {"success": True, "message": "Joined group successfully"}
+
+@api_router.get("/groups/user/{user_id}")
+async def get_user_groups(user_id: str):
+    memberships = await db.group_memberships.find({"user_id": user_id}).to_list(100)
+    group_ids = [membership["group_id"] for membership in memberships]
+    
+    if not group_ids:
+        return []
+    
+    groups = await db.walking_groups.find({"id": {"$in": group_ids}}).to_list(100)
+    return [WalkingGroup(**group) for group in groups]
+
+# Challenges
+@api_router.post("/challenges", response_model=Challenge)
+async def create_challenge(challenge_data: ChallengeCreate, creator_id: str = Query(...)):
+    # Get creator info
+    creator = await db.users.find_one({"id": creator_id})
+    if not creator:
+        raise HTTPException(status_code=404, detail="Creator not found")
+    
+    # Calculate end date
+    start_date = datetime.utcnow()
+    end_date = start_date + timedelta(days=challenge_data.duration_days)
+    
+    challenge = Challenge(
+        creator_id=creator_id,
+        creator_name=creator["name"],
+        participants=[creator_id],
+        start_date=start_date,
+        end_date=end_date,
+        **challenge_data.dict()
+    )
+    
+    await db.challenges.insert_one(challenge.dict())
+    
+    # Add creator as participant
+    participation = ChallengeParticipation(
+        challenge_id=challenge.id,
+        user_id=creator_id,
+        user_name=creator["name"]
+    )
+    await db.challenge_participations.insert_one(participation.dict())
+    
+    return challenge
+
+@api_router.get("/challenges")
+async def get_challenges(status: str = "active", limit: int = 20):
+    query = {"status": status, "is_public": True}
+    challenges = await db.challenges.find(query).sort("created_at", -1).limit(limit).to_list(limit)
+    return [Challenge(**challenge) for challenge in challenges]
+
+@api_router.post("/challenges/{challenge_id}/join")
+async def join_challenge(challenge_id: str, user_id: str = Query(...)):
+    # Check if challenge exists and is active
+    challenge = await db.challenges.find_one({"id": challenge_id})
+    if not challenge:
+        raise HTTPException(status_code=404, detail="Challenge not found")
+    
+    if challenge["status"] != "active":
+        raise HTTPException(status_code=400, detail="Challenge is not active")
+    
+    # Check if already participating
+    existing = await db.challenge_participations.find_one({"challenge_id": challenge_id, "user_id": user_id})
+    if existing:
+        raise HTTPException(status_code=400, detail="Already participating")
+    
+    # Get user info
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Add participation
+    participation = ChallengeParticipation(
+        challenge_id=challenge_id,
+        user_id=user_id,
+        user_name=user["name"]
+    )
+    await db.challenge_participations.insert_one(participation.dict())
+    
+    # Update challenge participants
+    await db.challenges.update_one(
+        {"id": challenge_id},
+        {"$push": {"participants": user_id}}
+    )
+    
+    return {"success": True, "message": "Joined challenge successfully"}
+
+@api_router.get("/challenges/{challenge_id}/leaderboard")
+async def get_challenge_leaderboard(challenge_id: str):
+    participations = await db.challenge_participations.find(
+        {"challenge_id": challenge_id}
+    ).sort("current_progress", -1).to_list(100)
+    
+    return [ChallengeParticipation(**participation) for participation in participations]
+
+# Social Feed
+@api_router.post("/social/posts", response_model=SocialPost)
+async def create_social_post(post_data: SocialPostCreate, user_id: str = Query(...)):
+    # Get user info
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    post = SocialPost(
+        user_id=user_id,
+        user_name=user["name"],
+        **post_data.dict()
+    )
+    
+    await db.social_posts.insert_one(post.dict())
+    return post
+
+@api_router.get("/social/feed/{user_id}")
+async def get_social_feed(user_id: str, limit: int = 20):
+    # Get user's friends for personalized feed
+    friends = await get_friends(user_id)
+    friend_ids = [friend["id"] for friend in friends] + [user_id]  # Include user's own posts
+    
+    # Get posts from friends and user
+    posts = await db.social_posts.find(
+        {"user_id": {"$in": friend_ids}}
+    ).sort("created_at", -1).limit(limit).to_list(limit)
+    
+    return [SocialPost(**post) for post in posts]
+
+@api_router.get("/social/posts/public")
+async def get_public_feed(limit: int = 20):
+    posts = await db.social_posts.find().sort("created_at", -1).limit(limit).to_list(limit)
+    return [SocialPost(**post) for post in posts]
+
+@api_router.post("/social/posts/{post_id}/like")
+async def like_post(post_id: str, user_id: str = Query(...)):
+    # Check if already liked
+    existing = await db.post_likes.find_one({"post_id": post_id, "user_id": user_id})
+    if existing:
+        # Unlike
+        await db.post_likes.delete_one({"post_id": post_id, "user_id": user_id})
+        await db.social_posts.update_one({"id": post_id}, {"$inc": {"likes_count": -1}})
+        return {"success": True, "action": "unliked"}
+    else:
+        # Like
+        user = await db.users.find_one({"id": user_id})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        like = PostLike(
+            post_id=post_id,
+            user_id=user_id,
+            user_name=user["name"]
+        )
+        await db.post_likes.insert_one(like.dict())
+        await db.social_posts.update_one({"id": post_id}, {"$inc": {"likes_count": 1}})
+        return {"success": True, "action": "liked"}
+
+@api_router.post("/social/posts/{post_id}/comment", response_model=PostComment)
+async def add_comment(post_id: str, comment_data: PostCommentCreate, user_id: str = Query(...)):
+    # Get user info
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    comment = PostComment(
+        post_id=post_id,
+        user_id=user_id,
+        user_name=user["name"],
+        content=comment_data.content
+    )
+    
+    await db.post_comments.insert_one(comment.dict())
+    await db.social_posts.update_one({"id": post_id}, {"$inc": {"comments_count": 1}})
+    
+    return comment
+
+@api_router.get("/social/posts/{post_id}/comments")
+async def get_post_comments(post_id: str):
+    comments = await db.post_comments.find({"post_id": post_id}).sort("created_at", 1).to_list(100)
+    return [PostComment(**comment) for comment in comments]
+
 # Include the router in the main app
 app.include_router(api_router)
 
