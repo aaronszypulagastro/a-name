@@ -662,7 +662,6 @@ function App() {
           </div>
         </div>
       )}
-    </div>
 
       {/* Friends Modal */}
       {showFriends && currentUser && (
