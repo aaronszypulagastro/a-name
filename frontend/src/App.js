@@ -488,4 +488,15 @@ function App() {
   );
 }
 
+// Map Click Handler Component
+const MapClickHandler = ({ onMapClick }) => {
+  useMapEvents({
+    click: (e) => {
+      console.log('Map clicked at:', e.latlng);
+      onMapClick(e);
+    },
+  });
+  return null;
+};
+
 export default App;
