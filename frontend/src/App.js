@@ -453,8 +453,15 @@ function App() {
       // Refresh leaderboard and friends activity
       fetchLeaderboard();
       fetchFriendsActivity();
+      
+      // Check for new achievements
+      checkForNewAchievements();
 
-      alert(`🎉 Walk completed! You earned ${response.data.coins_earned} WalkCoins!`);
+      const alertMessage = response.data.new_achievements && response.data.new_achievements.length > 0
+        ? `🎉 Walk completed! You earned ${response.data.coins_earned} WalkCoins and ${response.data.new_achievements.length} new achievement(s)!`
+        : `🎉 Walk completed! You earned ${response.data.coins_earned} WalkCoins!`;
+        
+      alert(alertMessage);
     } catch (error) {
       console.error('Error finishing walk:', error);
       alert('Error completing walk. Please try again.');
