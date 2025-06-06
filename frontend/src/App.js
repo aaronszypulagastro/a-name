@@ -356,6 +356,7 @@ function App() {
     const walkDuration = Math.floor((new Date() - walkStartTime) / 60000); // minutes
     
     try {
+      console.log('Finishing walk...');
       const response = await axios.post(`${API}/walks`, {
         user_id: currentUser.id,
         route_name: `Walk in ${selectedCity}`,
@@ -365,6 +366,8 @@ function App() {
         end_point: [waypoints[1].lng, waypoints[1].lat],
         city: selectedCity
       });
+
+      console.log('Walk completed successfully:', response.data);
 
       // Update user data
       const updatedUser = await axios.get(`${API}/users/${currentUser.id}`);
@@ -377,12 +380,14 @@ function App() {
       setWaypoints([]);
       setCurrentRoute(null);
       
-      // Refresh leaderboard
+      // Refresh leaderboard and friends activity
       fetchLeaderboard();
+      fetchFriendsActivity();
 
       alert(`🎉 Walk completed! You earned ${response.data.coins_earned} WalkCoins!`);
     } catch (error) {
       console.error('Error finishing walk:', error);
+      alert('Error completing walk. Please try again.');
     }
   };
 
