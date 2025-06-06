@@ -190,18 +190,25 @@ function App() {
   };
 
   const sendFriendRequest = async () => {
-    if (!newFriendEmail || !currentUser) return;
+    if (!newFriendEmail || !currentUser) {
+      alert('Please enter an email address');
+      return;
+    }
     
     try {
-      await axios.post(`${API}/friends/request?current_user_id=${currentUser.id}`, {
+      console.log('Sending friend request to:', newFriendEmail);
+      const response = await axios.post(`${API}/friends/request?current_user_id=${currentUser.id}`, {
         receiver_email: newFriendEmail
       });
       
+      console.log('Friend request response:', response.data);
       setNewFriendEmail('');
       fetchFriendRequests();
-      alert('Friend request sent!');
+      alert('Friend request sent successfully!');
     } catch (error) {
-      alert(error.response?.data?.detail || 'Error sending friend request');
+      console.error('Friend request error:', error);
+      const errorMessage = error.response?.data?.detail || 'Error sending friend request';
+      alert(errorMessage);
     }
   };
 
