@@ -80,6 +80,14 @@ function App() {
   const [walkStartTime, setWalkStartTime] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [showProfile, setShowProfile] = useState(false);
+  const [showFriends, setShowFriends] = useState(false);
+  const [friends, setFriends] = useState([]);
+  const [friendRequests, setFriendRequests] = useState({ received: [], sent: [] });
+  const [walkInvitations, setWalkInvitations] = useState({ received: [], sent: [] });
+  const [friendsActivity, setFriendsActivity] = useState([]);
+  const [newFriendEmail, setNewFriendEmail] = useState('');
+  const [showInviteFriend, setShowInviteFriend] = useState(false);
+  const [selectedFriendForInvite, setSelectedFriendForInvite] = useState(null);
 
   const cityCenters = {
     regensburg: { lat: 49.03, lng: 12.12 },
