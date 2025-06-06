@@ -194,6 +194,65 @@ function App() {
     }
   };
 
+  // Achievement functions
+  const initializeAchievements = async () => {
+    try {
+      await axios.get(`${API}/achievements/initialize`);
+    } catch (error) {
+      console.error('Error initializing achievements:', error);
+    }
+  };
+
+  const fetchUserAchievements = async () => {
+    if (!currentUser) return;
+    try {
+      const response = await axios.get(`${API}/achievements/user/${currentUser.id}`);
+      setUserAchievements(response.data);
+    } catch (error) {
+      console.error('Error fetching user achievements:', error);
+    }
+  };
+
+  const fetchAchievementProgress = async () => {
+    if (!currentUser) return;
+    try {
+      const response = await axios.get(`${API}/achievements/progress/${currentUser.id}`);
+      setAchievementProgress(response.data);
+    } catch (error) {
+      console.error('Error fetching achievement progress:', error);
+    }
+  };
+
+  const fetchAchievementStats = async () => {
+    if (!currentUser) return;
+    try {
+      const response = await axios.get(`${API}/achievements/stats/${currentUser.id}`);
+      setAchievementStats(response.data);
+    } catch (error) {
+      console.error('Error fetching achievement stats:', error);
+    }
+  };
+
+  const checkForNewAchievements = async () => {
+    if (!currentUser) return;
+    try {
+      const response = await axios.post(`${API}/achievements/check/${currentUser.id}`);
+      if (response.data.new_achievements && response.data.new_achievements.length > 0) {
+        // Show achievement notification
+        const achievement = response.data.new_achievements[0];
+        setNewAchievementAlert(achievement);
+        setTimeout(() => setNewAchievementAlert(null), 5000); // Hide after 5 seconds
+        
+        // Refresh achievement data
+        fetchUserAchievements();
+        fetchAchievementProgress();
+        fetchAchievementStats();
+      }
+    } catch (error) {
+      console.error('Error checking achievements:', error);
+    }
+  };
+
   const sendFriendRequest = async () => {
     if (!newFriendEmail || !currentUser) {
       alert('Please enter an email address');
