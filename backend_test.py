@@ -201,9 +201,9 @@ class GoWalkingAPITester:
         # Test geocoding with a German address
         self.run_test(
             "Geocode Address", 
-            "POST", 
+            "GET", 
             "geocode", 
-            data="Regensburg Hauptbahnhof"
+            params={"address": "Regensburg Hauptbahnhof"}
         )
 
     def print_summary(self):
