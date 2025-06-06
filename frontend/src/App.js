@@ -818,6 +818,38 @@ function App() {
             </ul>
           </div>
 
+          {/* Social Activity */}
+          {userGroups.length > 0 && (
+            <div className="mb-4">
+              <h3 className="font-semibold mb-2">👥 Your Groups</h3>
+              <div className="space-y-2">
+                {userGroups.slice(0, 3).map((group, index) => (
+                  <div key={index} className="text-xs p-2 bg-green-50 rounded">
+                    <div className="font-semibold">{group.name}</div>
+                    <div className="text-gray-600">{group.member_count} members • {group.city}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Active Challenges */}
+          {challenges.length > 0 && (
+            <div className="mb-4">
+              <h3 className="font-semibold mb-2">🏃‍♂️ Active Challenges</h3>
+              <div className="space-y-2">
+                {challenges.slice(0, 2).map((challenge, index) => (
+                  <div key={index} className="text-xs p-2 bg-red-50 rounded">
+                    <div className="font-semibold">{challenge.title}</div>
+                    <div className="text-gray-600">
+                      {challenge.target_value} {challenge.unit} • {challenge.participants.length} participants
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Achievement Progress */}
           {achievementProgress.length > 0 && (
             <div className="mb-4">
