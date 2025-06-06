@@ -129,6 +129,45 @@ class WalkInvitationCreate(BaseModel):
     proposed_time: Optional[str] = None
     message: Optional[str] = None
 
+class Achievement(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: str
+    category: str  # distance, social, explorer, streak, business
+    tier: str      # bronze, silver, gold, platinum
+    icon: str      # emoji or icon identifier
+    criteria: dict # criteria for earning the achievement
+    points: int    # achievement points value
+    is_hidden: bool = False  # hidden until unlocked
+
+class UserAchievement(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    achievement_id: str
+    achievement_name: str
+    achievement_description: str
+    achievement_icon: str
+    achievement_tier: str
+    achievement_category: str
+    achievement_points: int
+    progress: float = 100.0  # percentage progress (100 = completed)
+    earned_at: datetime = Field(default_factory=datetime.utcnow)
+    is_new: bool = True  # for showing "NEW!" badge
+
+class AchievementProgress(BaseModel):
+    achievement_id: str
+    achievement_name: str
+    description: str
+    category: str
+    tier: str
+    icon: str
+    points: int
+    current_progress: float
+    target_value: float
+    current_value: float
+    progress_percentage: float
+    is_completed: bool
+
 # City coordinates for German cities
 CITY_COORDS = {
     "regensburg": {"south": 49.0, "west": 12.0, "north": 49.1, "east": 12.2, "center": [12.12, 49.03]},
