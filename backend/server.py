@@ -390,6 +390,236 @@ async def geocode_address(address: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Geocoding error: {str(e)}")
 
+# Friend Management Endpoints
+@api_router.post("/friends/request", response_model=FriendRequest)
+async def send_friend_request(request: FriendRequestCreate, current_user_id: str):
+    # Find receiver by email
+    receiver = await db.users.find_one({"email": request.receiver_email})
+    if not receiver:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get sender info
+    sender = await db.users.find_one({"id": current_user_id})
+    if not sender:
+        raise HTTPException(status_code=404, detail="Sender not found")
+    
+    if sender["id"] == receiver["id"]:
+        raise HTTPException(status_code=400, detail="Cannot send friend request to yourself")
+    
+    # Check if already friends or request exists
+    existing_friendship = await db.friendships.find_one({
+        "$or": [
+            {"user1_id": sender["id"], "user2_id": receiver["id"]},
+            {"user1_id": receiver["id"], "user2_id": sender["id"]}
+        ]
+    })
+    if existing_friendship:
+        raise HTTPException(status_code=400, detail="Already friends")
+    
+    existing_request = await db.friend_requests.find_one({
+        "sender_id": sender["id"], 
+        "receiver_id": receiver["id"],
+        "status": "pending"
+    })
+    if existing_request:
+        raise HTTPException(status_code=400, detail="Friend request already sent")
+    
+    # Create friend request
+    friend_request = FriendRequest(
+        sender_id=sender["id"],
+        receiver_id=receiver["id"],
+        sender_name=sender["name"],
+        receiver_name=receiver["name"]
+    )
+    
+    await db.friend_requests.insert_one(friend_request.dict())
+    return friend_request
+
+@api_router.get("/friends/requests/{user_id}")
+async def get_friend_requests(user_id: str):
+    # Get pending requests received by this user
+    received_requests = await db.friend_requests.find({
+        "receiver_id": user_id,
+        "status": "pending"
+    }).to_list(100)
+    
+    # Get pending requests sent by this user
+    sent_requests = await db.friend_requests.find({
+        "sender_id": user_id,
+        "status": "pending"
+    }).to_list(100)
+    
+    return {
+        "received": [FriendRequest(**req) for req in received_requests],
+        "sent": [FriendRequest(**req) for req in sent_requests]
+    }
+
+@api_router.post("/friends/respond/{request_id}")
+async def respond_to_friend_request(request_id: str, action: str):
+    if action not in ["accept", "decline"]:
+        raise HTTPException(status_code=400, detail="Action must be 'accept' or 'decline'")
+    
+    # Find the request
+    friend_request = await db.friend_requests.find_one({"id": request_id})
+    if not friend_request:
+        raise HTTPException(status_code=404, detail="Friend request not found")
+    
+    if friend_request["status"] != "pending":
+        raise HTTPException(status_code=400, detail="Request already processed")
+    
+    # Update request status
+    await db.friend_requests.update_one(
+        {"id": request_id},
+        {"$set": {"status": action + "ed"}}
+    )
+    
+    # If accepted, create friendship
+    if action == "accept":
+        friendship = Friendship(
+            user1_id=friend_request["sender_id"],
+            user2_id=friend_request["receiver_id"],
+            user1_name=friend_request["sender_name"],
+            user2_name=friend_request["receiver_name"]
+        )
+        await db.friendships.insert_one(friendship.dict())
+    
+    return {"success": True, "action": action}
+
+@api_router.get("/friends/{user_id}")
+async def get_friends(user_id: str):
+    friendships = await db.friendships.find({
+        "$or": [
+            {"user1_id": user_id},
+            {"user2_id": user_id}
+        ]
+    }).to_list(100)
+    
+    friends = []
+    for friendship in friendships:
+        if friendship["user1_id"] == user_id:
+            friend_info = {
+                "id": friendship["user2_id"],
+                "name": friendship["user2_name"],
+                "friendship_id": friendship["id"]
+            }
+        else:
+            friend_info = {
+                "id": friendship["user1_id"],
+                "name": friendship["user1_name"],
+                "friendship_id": friendship["id"]
+            }
+        
+        # Get friend's latest stats
+        friend_data = await db.users.find_one({"id": friend_info["id"]})
+        if friend_data:
+            friend_info.update({
+                "walk_coins": friend_data["walk_coins"],
+                "total_distance_km": friend_data["total_distance_km"]
+            })
+        
+        friends.append(friend_info)
+    
+    return friends
+
+# Walk Invitation Endpoints
+@api_router.post("/walk-invitations", response_model=WalkInvitation)
+async def send_walk_invitation(invitation_data: WalkInvitationCreate, sender_id: str):
+    # Get sender and receiver info
+    sender = await db.users.find_one({"id": sender_id})
+    receiver = await db.users.find_one({"id": invitation_data.receiver_id})
+    
+    if not sender or not receiver:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Check if they are friends
+    friendship = await db.friendships.find_one({
+        "$or": [
+            {"user1_id": sender_id, "user2_id": invitation_data.receiver_id},
+            {"user1_id": invitation_data.receiver_id, "user2_id": sender_id}
+        ]
+    })
+    if not friendship:
+        raise HTTPException(status_code=400, detail="Can only invite friends to walk")
+    
+    invitation = WalkInvitation(
+        sender_id=sender_id,
+        receiver_id=invitation_data.receiver_id,
+        sender_name=sender["name"],
+        receiver_name=receiver["name"],
+        **invitation_data.dict(exclude={"receiver_id"})
+    )
+    
+    await db.walk_invitations.insert_one(invitation.dict())
+    return invitation
+
+@api_router.get("/walk-invitations/{user_id}")
+async def get_walk_invitations(user_id: str):
+    # Get invitations received
+    received = await db.walk_invitations.find({
+        "receiver_id": user_id,
+        "status": "pending"
+    }).sort("created_at", -1).to_list(50)
+    
+    # Get invitations sent
+    sent = await db.walk_invitations.find({
+        "sender_id": user_id,
+        "status": "pending"
+    }).sort("created_at", -1).to_list(50)
+    
+    return {
+        "received": [WalkInvitation(**inv) for inv in received],
+        "sent": [WalkInvitation(**inv) for inv in sent]
+    }
+
+@api_router.post("/walk-invitations/respond/{invitation_id}")
+async def respond_to_walk_invitation(invitation_id: str, action: str):
+    if action not in ["accept", "decline"]:
+        raise HTTPException(status_code=400, detail="Action must be 'accept' or 'decline'")
+    
+    # Find invitation
+    invitation = await db.walk_invitations.find_one({"id": invitation_id})
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Walk invitation not found")
+    
+    if invitation["status"] != "pending":
+        raise HTTPException(status_code=400, detail="Invitation already processed")
+    
+    # Update invitation status
+    await db.walk_invitations.update_one(
+        {"id": invitation_id},
+        {"$set": {"status": action + "ed"}}
+    )
+    
+    return {"success": True, "action": action, "invitation": invitation}
+
+@api_router.get("/friends/activity/{user_id}")
+async def get_friends_activity(user_id: str):
+    # Get user's friends
+    friends = await get_friends(user_id)
+    friend_ids = [friend["id"] for friend in friends]
+    
+    # Get recent walks by friends
+    recent_walks = await db.walks.find({
+        "user_id": {"$in": friend_ids}
+    }).sort("created_at", -1).limit(20).to_list(20)
+    
+    # Format activity feed
+    activity = []
+    for walk in recent_walks:
+        friend_name = next((f["name"] for f in friends if f["id"] == walk["user_id"]), "Unknown")
+        activity.append({
+            "type": "walk_completed",
+            "friend_name": friend_name,
+            "friend_id": walk["user_id"],
+            "route_name": walk["route_name"],
+            "distance_km": walk["distance_km"],
+            "coins_earned": walk["coins_earned"],
+            "city": walk["city"],
+            "created_at": walk["created_at"]
+        })
+    
+    return activity
+
 # Include the router in the main app
 app.include_router(api_router)
 
