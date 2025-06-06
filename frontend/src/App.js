@@ -478,6 +478,14 @@ function App() {
                   >
                     🚀 Start Walking!
                   </button>
+                  {friends.length > 0 && (
+                    <button
+                      onClick={() => setShowInviteFriend(true)}
+                      className="w-full bg-purple-500 text-white py-1 rounded hover:bg-purple-600"
+                    >
+                      👥 Invite Friend
+                    </button>
+                  )}
                   <button
                     onClick={clearRoute}
                     className="w-full bg-gray-500 text-white py-1 rounded hover:bg-gray-600"
