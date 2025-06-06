@@ -1338,38 +1338,44 @@ function App() {
           </div>
         </div>
       )}
-      {/* Achievements Modal */}
+      {/* Modern Achievement Modal */}
       {showAchievements && currentUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-4xl w-full mx-4 max-h-96 overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">🏆 Your Achievements</h2>
+        <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4">
+          <div className="modal-content max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+              <div>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                  🏆 Your Achievements
+                </h2>
+                <p className="text-gray-600 mt-1">Track your walking milestones</p>
+              </div>
               <button
                 onClick={() => setShowAchievements(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all duration-300"
               >
-                ✕
+                <span className="text-gray-600">✕</span>
               </button>
             </div>
             
-            {/* Achievement Stats */}
+            {/* Achievement Stats with Modern Cards */}
             {achievementStats && (
-              <div className="mb-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg">
+              <div className="p-6 border-b border-gray-200">
+                <h3 className="text-lg font-bold mb-4 text-gray-800">📊 Your Progress</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-600">{achievementStats.total_achievements}</div>
-                    <div className="text-sm text-gray-600">Total Earned</div>
+                  <div className="modern-card text-center bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200">
+                    <div className="text-3xl font-bold text-yellow-600 mb-1">{achievementStats.total_achievements}</div>
+                    <div className="text-sm text-gray-600">Achievements Earned</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">{achievementStats.total_points}</div>
+                  <div className="modern-card text-center bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200">
+                    <div className="text-3xl font-bold text-purple-600 mb-1">{achievementStats.total_points}</div>
                     <div className="text-sm text-gray-600">Achievement Points</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{achievementStats.completion_percentage}%</div>
-                    <div className="text-sm text-gray-600">Completion</div>
+                  <div className="modern-card text-center bg-gradient-to-br from-green-50 to-blue-50 border border-green-200">
+                    <div className="text-3xl font-bold text-green-600 mb-1">{achievementStats.completion_percentage}%</div>
+                    <div className="text-sm text-gray-600">Completion Rate</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">
+                  <div className="modern-card text-center bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200">
+                    <div className="text-3xl font-bold text-blue-600 mb-1">
                       {achievementStats.tier_counts.gold + achievementStats.tier_counts.platinum}
                     </div>
                     <div className="text-sm text-gray-600">Elite Badges</div>
@@ -1379,69 +1385,91 @@ function App() {
             )}
 
             {/* Earned Achievements */}
-            <div className="mb-6">
-              <h3 className="font-semibold mb-3">🎖️ Earned Achievements ({userAchievements.length})</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="p-6">
+              <h3 className="text-lg font-bold mb-4 text-gray-800 flex items-center gap-2">
+                <span className="text-2xl">🎖️</span>
+                Earned Achievements ({userAchievements.length})
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                 {userAchievements.map((achievement) => (
-                  <div key={achievement.id} className={`p-3 rounded-lg border-2 ${
-                    achievement.achievement_tier === 'platinum' ? 'bg-purple-50 border-purple-200' :
-                    achievement.achievement_tier === 'gold' ? 'bg-yellow-50 border-yellow-200' :
-                    achievement.achievement_tier === 'silver' ? 'bg-gray-50 border-gray-200' :
-                    'bg-orange-50 border-orange-200'
-                  }`}>
+                  <div key={achievement.id} className={`modern-card relative overflow-hidden ${
+                    achievement.achievement_tier === 'platinum' ? 'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-300' :
+                    achievement.achievement_tier === 'gold' ? 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-300' :
+                    achievement.achievement_tier === 'silver' ? 'bg-gradient-to-br from-gray-50 to-slate-50 border-gray-300' :
+                    'bg-gradient-to-br from-orange-50 to-red-50 border-orange-300'
+                  } border-2`}>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="text-2xl mb-1">{achievement.achievement_icon}</div>
-                        <div className="font-semibold text-sm">{achievement.achievement_name}</div>
-                        <div className="text-xs text-gray-600 mb-2">{achievement.achievement_description}</div>
-                        <div className="text-xs text-gray-500">
-                          {new Date(achievement.earned_at).toLocaleDateString()} • {achievement.achievement_points} pts
+                        <div className="text-3xl mb-2">{achievement.achievement_icon}</div>
+                        <div className="font-bold text-base mb-1">{achievement.achievement_name}</div>
+                        <div className="text-sm text-gray-600 mb-3">{achievement.achievement_description}</div>
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <span>{new Date(achievement.earned_at).toLocaleDateString()}</span>
+                          <span className="font-bold text-purple-600">{achievement.achievement_points} pts</span>
                         </div>
                       </div>
                       {achievement.is_new && (
-                        <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">NEW!</span>
+                        <span className="absolute top-3 right-3 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                          NEW!
+                        </span>
                       )}
                     </div>
+                    <div className={`absolute bottom-0 left-0 right-0 h-1 ${
+                      achievement.achievement_tier === 'platinum' ? 'bg-gradient-to-r from-purple-500 to-indigo-500' :
+                      achievement.achievement_tier === 'gold' ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
+                      achievement.achievement_tier === 'silver' ? 'bg-gradient-to-r from-gray-400 to-slate-400' :
+                      'bg-gradient-to-r from-orange-500 to-red-500'
+                    }`}></div>
                   </div>
                 ))}
               </div>
-            </div>
 
-            {/* Progress Toward Next Achievements */}
-            <div>
-              <h3 className="font-semibold mb-3">📈 Progress Toward Next Achievements</h3>
-              <div className="space-y-3">
+              {/* Progress Toward Next Achievements */}
+              <h3 className="text-lg font-bold mb-4 text-gray-800 flex items-center gap-2">
+                <span className="text-2xl">📈</span>
+                Progress Toward Next Achievements
+              </h3>
+              <div className="space-y-4">
                 {achievementProgress
                   .filter(ach => !ach.is_completed)
                   .slice(0, 6)
                   .map((achievement, index) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xl">{achievement.icon}</span>
+                    <div key={index} className="modern-card bg-gradient-to-r from-gray-50 to-white border border-gray-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">{achievement.icon}</span>
                           <div>
-                            <div className="font-semibold text-sm">{achievement.achievement_name}</div>
-                            <div className="text-xs text-gray-600">{achievement.description}</div>
+                            <div className="font-bold text-base">{achievement.achievement_name}</div>
+                            <div className="text-sm text-gray-600">{achievement.description}</div>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-sm font-semibold">{Math.round(achievement.progress_percentage)}%</div>
-                          <div className="text-xs text-gray-500 capitalize">{achievement.tier} • {achievement.points}pts</div>
+                          <div className="text-lg font-bold text-gray-800">{Math.round(achievement.progress_percentage)}%</div>
+                          <div className="text-xs text-gray-500 capitalize flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full ${
+                              achievement.tier === 'platinum' ? 'bg-purple-500' :
+                              achievement.tier === 'gold' ? 'bg-yellow-500' :
+                              achievement.tier === 'silver' ? 'bg-gray-400' :
+                              'bg-orange-500'
+                            }`}></span>
+                            {achievement.tier} • {achievement.points}pts
+                          </div>
                         </div>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="progress-modern mb-2">
                         <div 
-                          className={`h-2 rounded-full ${
-                            achievement.tier === 'platinum' ? 'bg-purple-500' :
-                            achievement.tier === 'gold' ? 'bg-yellow-500' :
-                            achievement.tier === 'silver' ? 'bg-gray-400' :
-                            'bg-orange-500'
+                          className={`progress-fill ${
+                            achievement.tier === 'platinum' ? 'bg-gradient-to-r from-purple-500 to-indigo-500' :
+                            achievement.tier === 'gold' ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
+                            achievement.tier === 'silver' ? 'bg-gradient-to-r from-gray-400 to-slate-400' :
+                            'bg-gradient-to-r from-orange-500 to-red-500'
                           }`}
                           style={{ width: `${achievement.progress_percentage}%` }}
                         ></div>
                       </div>
-                      <div className="text-xs text-gray-600 mt-1">
-                        {achievement.current_value} / {achievement.target_value}
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>{achievement.current_value} / {achievement.target_value}</span>
+                        <span>{achievement.target_value - achievement.current_value} to go</span>
                       </div>
                     </div>
                   ))}
