@@ -505,6 +505,17 @@ function App() {
                 )}
               </button>
               <button
+                onClick={() => setShowAchievements(!showAchievements)}
+                className="bg-yellow-500 hover:bg-yellow-600 px-3 py-2 rounded relative"
+              >
+                🏆 Achievements
+                {achievementStats && (
+                  <span className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                    {achievementStats.total_achievements}
+                  </span>
+                )}
+              </button>
+              <button
                 onClick={() => setShowProfile(!showProfile)}
                 className="bg-blue-500 hover:bg-blue-700 px-3 py-2 rounded"
               >
