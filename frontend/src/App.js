@@ -88,6 +88,11 @@ function App() {
   const [newFriendEmail, setNewFriendEmail] = useState('');
   const [showInviteFriend, setShowInviteFriend] = useState(false);
   const [selectedFriendForInvite, setSelectedFriendForInvite] = useState(null);
+  const [showAchievements, setShowAchievements] = useState(false);
+  const [userAchievements, setUserAchievements] = useState([]);
+  const [achievementProgress, setAchievementProgress] = useState([]);
+  const [achievementStats, setAchievementStats] = useState(null);
+  const [newAchievementAlert, setNewAchievementAlert] = useState(null);
 
   const cityCenters = {
     regensburg: { lat: 49.03, lng: 12.12 },
