@@ -226,10 +226,14 @@ function App() {
   };
 
   const inviteFriendToWalk = async (friendId) => {
-    if (!currentRoute || !currentUser) return;
+    if (!currentRoute || !currentUser) {
+      alert('Please plan a route first');
+      return;
+    }
     
     try {
-      await axios.post(`${API}/walk-invitations?sender_id=${currentUser.id}`, {
+      console.log('Inviting friend to walk:', friendId);
+      const response = await axios.post(`${API}/walk-invitations?sender_id=${currentUser.id}`, {
         receiver_id: friendId,
         route_name: `Walk in ${selectedCity}`,
         start_point: [waypoints[0].lng, waypoints[0].lat],
@@ -239,10 +243,14 @@ function App() {
         message: `Come walk with me in ${selectedCity}!`
       });
       
+      console.log('Walk invitation response:', response.data);
       setShowInviteFriend(false);
-      alert('Walk invitation sent!');
+      fetchWalkInvitations();
+      alert('Walk invitation sent successfully!');
     } catch (error) {
-      alert(error.response?.data?.detail || 'Error sending walk invitation');
+      console.error('Walk invitation error:', error);
+      const errorMessage = error.response?.data?.detail || 'Error sending walk invitation';
+      alert(errorMessage);
     }
   };
 
