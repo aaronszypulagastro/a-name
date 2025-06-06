@@ -326,7 +326,7 @@ async def get_leaderboard():
     ]
 
 # Geocoding endpoint
-@api_router.post("/geocode")
+@api_router.get("/geocode")
 async def geocode_address(address: str):
     try:
         geolocator = Nominatim(user_agent="gowalking-app")
