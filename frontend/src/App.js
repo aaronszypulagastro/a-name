@@ -628,6 +628,37 @@ function App() {
             </ul>
           </div>
 
+          {/* Achievement Progress */}
+          {achievementProgress.length > 0 && (
+            <div className="mb-4">
+              <h3 className="font-semibold mb-2">🏆 Next Achievements</h3>
+              <div className="space-y-2">
+                {achievementProgress
+                  .filter(ach => !ach.is_completed && ach.progress_percentage > 0)
+                  .slice(0, 3)
+                  .map((achievement, index) => (
+                    <div key={index} className="text-xs p-2 bg-yellow-50 rounded">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-semibold">
+                          {achievement.icon} {achievement.achievement_name}
+                        </span>
+                        <span className="text-xs text-gray-500">{achievement.tier}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-yellow-500 h-2 rounded-full" 
+                          style={{ width: `${achievement.progress_percentage}%` }}
+                        ></div>
+                      </div>
+                      <div className="text-xs text-gray-600 mt-1">
+                        {achievement.current_value}/{achievement.target_value} ({Math.round(achievement.progress_percentage)}%)
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
           {/* Leaderboard */}
           <div className="mb-4">
             <h3 className="font-semibold mb-2">🏆 Top Walkers</h3>
