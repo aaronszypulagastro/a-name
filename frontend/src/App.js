@@ -148,6 +148,121 @@ function App() {
     }
   };
 
+  // Friend management functions
+  const fetchFriends = async () => {
+    if (!currentUser) return;
+    try {
+      const response = await axios.get(`${API}/friends/${currentUser.id}`);
+      setFriends(response.data);
+    } catch (error) {
+      console.error('Error fetching friends:', error);
+    }
+  };
+
+  const fetchFriendRequests = async () => {
+    if (!currentUser) return;
+    try {
+      const response = await axios.get(`${API}/friends/requests/${currentUser.id}`);
+      setFriendRequests(response.data);
+    } catch (error) {
+      console.error('Error fetching friend requests:', error);
+    }
+  };
+
+  const fetchWalkInvitations = async () => {
+    if (!currentUser) return;
+    try {
+      const response = await axios.get(`${API}/walk-invitations/${currentUser.id}`);
+      setWalkInvitations(response.data);
+    } catch (error) {
+      console.error('Error fetching walk invitations:', error);
+    }
+  };
+
+  const fetchFriendsActivity = async () => {
+    if (!currentUser) return;
+    try {
+      const response = await axios.get(`${API}/friends/activity/${currentUser.id}`);
+      setFriendsActivity(response.data);
+    } catch (error) {
+      console.error('Error fetching friends activity:', error);
+    }
+  };
+
+  const sendFriendRequest = async () => {
+    if (!newFriendEmail || !currentUser) return;
+    
+    try {
+      await axios.post(`${API}/friends/request?current_user_id=${currentUser.id}`, {
+        receiver_email: newFriendEmail
+      });
+      
+      setNewFriendEmail('');
+      fetchFriendRequests();
+      alert('Friend request sent!');
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Error sending friend request');
+    }
+  };
+
+  const respondToFriendRequest = async (requestId, action) => {
+    try {
+      await axios.post(`${API}/friends/respond/${requestId}?action=${action}`);
+      fetchFriendRequests();
+      fetchFriends();
+      if (action === 'accept') {
+        alert('Friend request accepted!');
+      }
+    } catch (error) {
+      alert('Error responding to friend request');
+    }
+  };
+
+  const inviteFriendToWalk = async (friendId) => {
+    if (!currentRoute || !currentUser) return;
+    
+    try {
+      await axios.post(`${API}/walk-invitations?sender_id=${currentUser.id}`, {
+        receiver_id: friendId,
+        route_name: `Walk in ${selectedCity}`,
+        start_point: [waypoints[0].lng, waypoints[0].lat],
+        end_point: [waypoints[1].lng, waypoints[1].lat],
+        city: selectedCity,
+        distance_km: currentRoute.distance_km,
+        message: `Come walk with me in ${selectedCity}!`
+      });
+      
+      setShowInviteFriend(false);
+      alert('Walk invitation sent!');
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Error sending walk invitation');
+    }
+  };
+
+  const respondToWalkInvitation = async (invitationId, action) => {
+    try {
+      const response = await axios.post(`${API}/walk-invitations/respond/${invitationId}?action=${action}`);
+      fetchWalkInvitations();
+      
+      if (action === 'accept') {
+        const invitation = response.data.invitation;
+        // Set up the route from the invitation
+        setSelectedCity(invitation.city);
+        setWaypoints([
+          { lat: invitation.start_point[1], lng: invitation.start_point[0] },
+          { lat: invitation.end_point[1], lng: invitation.end_point[0] }
+        ]);
+        calculateRoute(
+          { lat: invitation.start_point[1], lng: invitation.start_point[0] },
+          { lat: invitation.end_point[1], lng: invitation.end_point[0] }
+        );
+        alert(`Walk invitation accepted! Route loaded in ${invitation.city}`);
+      }
+    } catch (error) {
+      alert('Error responding to walk invitation');
+    }
+  };
+
   useEffect(() => {
     fetchPOIs(selectedCity);
   }, [selectedCity]);
