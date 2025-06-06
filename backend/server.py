@@ -1035,6 +1035,80 @@ async def get_friends_activity(user_id: str):
     
     return activity
 
+# Achievement Endpoints
+@api_router.get("/achievements/initialize")
+async def initialize_achievements_endpoint():
+    """Initialize achievements in database"""
+    await initialize_achievements()
+    return {"success": True, "message": "Achievements initialized"}
+
+@api_router.get("/achievements")
+async def get_all_achievements():
+    """Get all available achievements"""
+    achievements = await db.achievements.find().to_list(1000)
+    return [Achievement(**ach) for ach in achievements]
+
+@api_router.get("/achievements/user/{user_id}")
+async def get_user_achievements(user_id: str):
+    """Get user's earned achievements"""
+    user_achievements = await db.user_achievements.find({"user_id": user_id}).sort("earned_at", -1).to_list(1000)
+    return [UserAchievement(**ach) for ach in user_achievements]
+
+@api_router.get("/achievements/progress/{user_id}")
+async def get_user_achievement_progress(user_id: str):
+    """Get user's progress toward all achievements"""
+    progress = await get_achievement_progress(user_id)
+    return progress
+
+@api_router.post("/achievements/check/{user_id}")
+async def check_user_achievements(user_id: str):
+    """Check and award any new achievements for user"""
+    new_achievements = await check_and_award_achievements(user_id)
+    return {
+        "success": True,
+        "new_achievements": [UserAchievement(**ach.dict()) for ach in new_achievements],
+        "count": len(new_achievements)
+    }
+
+@api_router.post("/achievements/mark-seen/{user_id}")
+async def mark_achievements_seen(user_id: str, achievement_ids: List[str]):
+    """Mark achievements as seen (remove 'NEW!' badge)"""
+    await db.user_achievements.update_many(
+        {"user_id": user_id, "achievement_id": {"$in": achievement_ids}},
+        {"$set": {"is_new": False}}
+    )
+    return {"success": True}
+
+@api_router.get("/achievements/stats/{user_id}")
+async def get_achievement_stats(user_id: str):
+    """Get user's achievement statistics"""
+    user_achievements = await db.user_achievements.find({"user_id": user_id}).to_list(1000)
+    
+    # Calculate stats
+    total_achievements = len(user_achievements)
+    total_points = sum(ach["achievement_points"] for ach in user_achievements)
+    
+    # Count by tier
+    tier_counts = {"bronze": 0, "silver": 0, "gold": 0, "platinum": 0}
+    category_counts = {"distance": 0, "social": 0, "explorer": 0, "streak": 0, "business": 0, "coins": 0}
+    
+    for ach in user_achievements:
+        tier = ach.get("achievement_tier", "bronze")
+        category = ach.get("achievement_category", "other")
+        tier_counts[tier] = tier_counts.get(tier, 0) + 1
+        category_counts[category] = category_counts.get(category, 0) + 1
+    
+    completion_percentage = (total_achievements / len(ACHIEVEMENTS)) * 100 if ACHIEVEMENTS else 0
+    
+    return {
+        "total_achievements": total_achievements,
+        "total_points": total_points,
+        "completion_percentage": round(completion_percentage, 1),
+        "tier_counts": tier_counts,
+        "category_counts": category_counts,
+        "available_achievements": len(ACHIEVEMENTS)
+    }
+
 # Include the router in the main app
 app.include_router(api_router)
 
