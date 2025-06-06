@@ -964,6 +964,138 @@ function App() {
           </div>
         </div>
       )}
+      {/* Achievements Modal */}
+      {showAchievements && currentUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-4xl w-full mx-4 max-h-96 overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">🏆 Your Achievements</h2>
+              <button
+                onClick={() => setShowAchievements(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* Achievement Stats */}
+            {achievementStats && (
+              <div className="mb-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-yellow-600">{achievementStats.total_achievements}</div>
+                    <div className="text-sm text-gray-600">Total Earned</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-600">{achievementStats.total_points}</div>
+                    <div className="text-sm text-gray-600">Achievement Points</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{achievementStats.completion_percentage}%</div>
+                    <div className="text-sm text-gray-600">Completion</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {achievementStats.tier_counts.gold + achievementStats.tier_counts.platinum}
+                    </div>
+                    <div className="text-sm text-gray-600">Elite Badges</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Earned Achievements */}
+            <div className="mb-6">
+              <h3 className="font-semibold mb-3">🎖️ Earned Achievements ({userAchievements.length})</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {userAchievements.map((achievement) => (
+                  <div key={achievement.id} className={`p-3 rounded-lg border-2 ${
+                    achievement.achievement_tier === 'platinum' ? 'bg-purple-50 border-purple-200' :
+                    achievement.achievement_tier === 'gold' ? 'bg-yellow-50 border-yellow-200' :
+                    achievement.achievement_tier === 'silver' ? 'bg-gray-50 border-gray-200' :
+                    'bg-orange-50 border-orange-200'
+                  }`}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="text-2xl mb-1">{achievement.achievement_icon}</div>
+                        <div className="font-semibold text-sm">{achievement.achievement_name}</div>
+                        <div className="text-xs text-gray-600 mb-2">{achievement.achievement_description}</div>
+                        <div className="text-xs text-gray-500">
+                          {new Date(achievement.earned_at).toLocaleDateString()} • {achievement.achievement_points} pts
+                        </div>
+                      </div>
+                      {achievement.is_new && (
+                        <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">NEW!</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Progress Toward Next Achievements */}
+            <div>
+              <h3 className="font-semibold mb-3">📈 Progress Toward Next Achievements</h3>
+              <div className="space-y-3">
+                {achievementProgress
+                  .filter(ach => !ach.is_completed)
+                  .slice(0, 6)
+                  .map((achievement, index) => (
+                    <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">{achievement.icon}</span>
+                          <div>
+                            <div className="font-semibold text-sm">{achievement.achievement_name}</div>
+                            <div className="text-xs text-gray-600">{achievement.description}</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-semibold">{Math.round(achievement.progress_percentage)}%</div>
+                          <div className="text-xs text-gray-500 capitalize">{achievement.tier} • {achievement.points}pts</div>
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full ${
+                            achievement.tier === 'platinum' ? 'bg-purple-500' :
+                            achievement.tier === 'gold' ? 'bg-yellow-500' :
+                            achievement.tier === 'silver' ? 'bg-gray-400' :
+                            'bg-orange-500'
+                          }`}
+                          style={{ width: `${achievement.progress_percentage}%` }}
+                        ></div>
+                      </div>
+                      <div className="text-xs text-gray-600 mt-1">
+                        {achievement.current_value} / {achievement.target_value}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* New Achievement Alert */}
+      {newAchievementAlert && (
+        <div className="fixed top-20 right-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white p-4 rounded-lg shadow-lg z-50 max-w-sm">
+          <div className="flex items-center gap-3">
+            <div className="text-3xl">{newAchievementAlert.achievement_icon}</div>
+            <div>
+              <div className="font-bold">Achievement Unlocked!</div>
+              <div className="text-sm">{newAchievementAlert.achievement_name}</div>
+              <div className="text-xs opacity-90">{newAchievementAlert.achievement_description}</div>
+            </div>
+          </div>
+          <button
+            onClick={() => setNewAchievementAlert(null)}
+            className="absolute top-2 right-2 text-white hover:text-gray-200"
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   );
 }
