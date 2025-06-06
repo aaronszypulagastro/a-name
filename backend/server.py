@@ -523,10 +523,7 @@ async def get_friends(user_id: str):
 
 # Walk Invitation Endpoints
 @api_router.post("/walk-invitations", response_model=WalkInvitation)
-async def send_walk_invitation(invitation_data: WalkInvitationCreate, sender_id: str = None):
-    if not sender_id:
-        raise HTTPException(status_code=400, detail="sender_id is required")
-        
+async def send_walk_invitation(invitation_data: WalkInvitationCreate, sender_id: str = Query(...)):
     # Get sender and receiver info
     sender = await db.users.find_one({"id": sender_id})
     receiver = await db.users.find_one({"id": invitation_data.receiver_id})
