@@ -352,6 +352,12 @@ function App() {
       fetchFriendRequests();
       fetchWalkInvitations();
       fetchFriendsActivity();
+      
+      // Initialize and fetch achievements
+      initializeAchievements();
+      fetchUserAchievements();
+      fetchAchievementProgress();
+      fetchAchievementStats();
     }
   }, [currentUser]);
 
