@@ -1298,9 +1298,22 @@ async def get_walking_group(group_id: str):
     
     # Get members
     memberships = await db.group_memberships.find({"group_id": group_id}).to_list(100)
-    group["members"] = [GroupMembership(**membership) for membership in memberships]
     
-    return group
+    # Convert to proper format
+    group_dict = {}
+    for key, value in group.items():
+        if key != "_id":  # Skip MongoDB ObjectId
+            group_dict[key] = value
+    
+    group_dict["members"] = []
+    for membership in memberships:
+        member_dict = {}
+        for key, value in membership.items():
+            if key != "_id":
+                member_dict[key] = value
+        group_dict["members"].append(member_dict)
+    
+    return group_dict
 
 @api_router.post("/groups/{group_id}/join")
 async def join_walking_group(group_id: str, user_id: str = Query(...)):
