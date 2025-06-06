@@ -385,6 +385,75 @@ class GoWalkingAPITester:
             "GET",
             f"friends/activity/{self.test_user['id']}"
         )
+    
+    def test_achievement_system(self):
+        """Test achievement system endpoints"""
+        print("\n=== Testing Achievement System ===")
+        
+        if not self.test_user:
+            print("❌ No test user available, skipping achievement tests")
+            return
+        
+        # Initialize achievements
+        self.run_test(
+            "Initialize Achievements", 
+            "GET", 
+            "achievements/initialize"
+        )
+        
+        # Get all achievements
+        self.run_test(
+            "Get All Achievements", 
+            "GET", 
+            "achievements"
+        )
+        
+        # Get user achievements
+        self.run_test(
+            "Get User Achievements", 
+            "GET", 
+            f"achievements/user/{self.test_user['id']}"
+        )
+        
+        # Get achievement progress
+        self.run_test(
+            "Get Achievement Progress", 
+            "GET", 
+            f"achievements/progress/{self.test_user['id']}"
+        )
+        
+        # Check for new achievements
+        self.run_test(
+            "Check User Achievements", 
+            "POST", 
+            f"achievements/check/{self.test_user['id']}"
+        )
+        
+        # Get achievement stats
+        self.run_test(
+            "Get Achievement Stats", 
+            "GET", 
+            f"achievements/stats/{self.test_user['id']}"
+        )
+        
+        # Mark achievements as seen
+        # First, get user achievements to find IDs to mark as seen
+        success, user_achievements = self.run_test(
+            "Get User Achievements for Marking", 
+            "GET", 
+            f"achievements/user/{self.test_user['id']}"
+        )
+        
+        if success and user_achievements:
+            achievement_ids = [ach["id"] for ach in user_achievements[:2]] if len(user_achievements) >= 2 else []
+            
+            if achievement_ids:
+                self.run_test(
+                    "Mark Achievements as Seen", 
+                    "POST", 
+                    f"achievements/mark-seen/{self.test_user['id']}", 
+                    data=achievement_ids
+                )
 
     def print_summary(self):
         """Print a summary of all test results"""
