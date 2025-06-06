@@ -33,13 +33,33 @@ const RouteLine = ({ route }) => {
   useEffect(() => {
     if (!route || !route.route_geometry) return;
 
-    const polyline = L.polyline(
-      route.route_geometry.map(coord => [coord[1], coord[0]]), // Convert lng,lat to lat,lng
-      { color: '#2563eb', weight: 4, opacity: 0.7 }
-    );
+    console.log('Drawing route with geometry:', route.route_geometry);
+
+    let coordinates;
+    
+    // Handle different geometry formats
+    if (Array.isArray(route.route_geometry[0]) && route.route_geometry[0].length === 2) {
+      // Format: [[lng, lat], [lng, lat]] - convert to [lat, lng]
+      coordinates = route.route_geometry.map(coord => [coord[1], coord[0]]);
+    } else {
+      // Already in [lat, lng] format
+      coordinates = route.route_geometry;
+    }
+
+    console.log('Converted coordinates:', coordinates);
+
+    const polyline = L.polyline(coordinates, { 
+      color: '#2563eb', 
+      weight: 4, 
+      opacity: 0.7 
+    });
 
     polyline.addTo(map);
-    map.fitBounds(polyline.getBounds());
+    
+    // Fit map to route bounds with some padding
+    if (coordinates.length > 1) {
+      map.fitBounds(polyline.getBounds(), { padding: [20, 20] });
+    }
 
     return () => {
       map.removeLayer(polyline);
