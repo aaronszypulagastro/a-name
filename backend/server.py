@@ -585,9 +585,10 @@ async def respond_to_walk_invitation(invitation_id: str, action: str):
         raise HTTPException(status_code=400, detail="Invitation already processed")
     
     # Update invitation status
+    new_status = "accepted" if action == "accept" else "declined"
     await db.walk_invitations.update_one(
         {"id": invitation_id},
-        {"$set": {"status": action + "ed"}}
+        {"$set": {"status": new_status}}
     )
     
     return {"success": True, "action": action, "invitation": invitation}
