@@ -532,6 +532,24 @@ function App() {
               ))}
             </div>
           </div>
+
+          {/* Friends Activity */}
+          {friendsActivity.length > 0 && (
+            <div className="mb-4">
+              <h3 className="font-semibold mb-2">👥 Friends Activity</h3>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {friendsActivity.slice(0, 5).map((activity, index) => (
+                  <div key={index} className="text-xs p-2 bg-blue-50 rounded">
+                    <div className="font-semibold">{activity.friend_name}</div>
+                    <div>completed {activity.route_name}</div>
+                    <div className="text-gray-600">
+                      {activity.distance_km}km • {activity.coins_earned} coins • {activity.city}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Map */}
