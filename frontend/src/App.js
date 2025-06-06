@@ -516,8 +516,17 @@ function App() {
       fetchUserAchievements();
       fetchAchievementProgress();
       fetchAchievementStats();
+      
+      // Fetch enhanced social features
+      fetchSocialFeed();
+      fetchUserGroups();
     }
   }, [currentUser]);
+
+  useEffect(() => {
+    fetchWalkingGroups();
+    fetchChallenges();
+  }, [selectedCity]);
 
   // Handle map clicks for route planning
   const handleMapClick = (e) => {
