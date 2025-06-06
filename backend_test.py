@@ -10,9 +10,11 @@ class GoWalkingAPITester:
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.test_user = None
+        self.test_user2 = None
         self.tests_run = 0
         self.tests_passed = 0
         self.test_results = []
+        self.test_route = None
 
     def run_test(self, name, method, endpoint, expected_status=200, data=None, params=None):
         """Run a single API test"""
@@ -104,6 +106,23 @@ class GoWalkingAPITester:
             self.test_user = response
             user_id = response.get("id")
             
+            # Create a second test user for friend testing
+            user2_data = {
+                "name": f"TestFriend_{timestamp}",
+                "email": f"friend_{timestamp}@example.com"
+            }
+            
+            success2, response2 = self.run_test(
+                "Create Second User", 
+                "POST", 
+                "users", 
+                expected_status=200, 
+                data=user2_data
+            )
+            
+            if success2:
+                self.test_user2 = response2
+            
             # Get user by ID
             self.run_test("Get User by ID", "GET", f"users/{user_id}")
             
@@ -144,7 +163,7 @@ class GoWalkingAPITester:
         }
         
         for city, coords in test_routes.items():
-            self.run_test(
+            success, response = self.run_test(
                 f"Calculate Route - {city.capitalize()}", 
                 "POST", 
                 "route/calculate", 
@@ -154,6 +173,16 @@ class GoWalkingAPITester:
                     "city": city
                 }
             )
+            
+            # Save a test route for walk invitation testing
+            if success and city == "regensburg" and not self.test_route:
+                self.test_route = {
+                    "start_point": coords["start"],
+                    "end_point": coords["end"],
+                    "city": city,
+                    "distance_km": response.get("distance_km", 2.5),
+                    "route_name": f"Test Route in {city.capitalize()}"
+                }
 
     def test_walking_system(self):
         """Test walking system endpoints"""
@@ -205,6 +234,157 @@ class GoWalkingAPITester:
             "geocode", 
             params={"address": "Regensburg Hauptbahnhof"}
         )
+    
+    def test_friend_system(self):
+        """Test friend system endpoints"""
+        print("\n=== Testing Friend System ===")
+        
+        if not self.test_user or not self.test_user2:
+            print("❌ Test users not available, skipping friend system tests")
+            return
+        
+        # Send friend request
+        success, friend_request = self.run_test(
+            "Send Friend Request",
+            "POST",
+            f"friends/request?current_user_id={self.test_user['id']}",
+            data={"receiver_email": self.test_user2["email"]}
+        )
+        
+        if not success:
+            print("❌ Friend request failed, skipping other friend tests")
+            return
+            
+        # Test duplicate friend request (should fail)
+        self.run_test(
+            "Send Duplicate Friend Request (should fail)",
+            "POST",
+            f"friends/request?current_user_id={self.test_user['id']}",
+            expected_status=400,
+            data={"receiver_email": self.test_user2["email"]}
+        )
+        
+        # Test self friend request (should fail)
+        self.run_test(
+            "Send Friend Request to Self (should fail)",
+            "POST",
+            f"friends/request?current_user_id={self.test_user['id']}",
+            expected_status=400,
+            data={"receiver_email": self.test_user["email"]}
+        )
+        
+        # Get friend requests for both users
+        self.run_test(
+            "Get Friend Requests - Sender",
+            "GET",
+            f"friends/requests/{self.test_user['id']}"
+        )
+        
+        self.run_test(
+            "Get Friend Requests - Receiver",
+            "GET",
+            f"friends/requests/{self.test_user2['id']}"
+        )
+        
+        # Accept friend request
+        self.run_test(
+            "Accept Friend Request",
+            "POST",
+            f"friends/respond/{friend_request['id']}?action=accept"
+        )
+        
+        # Get friends list
+        self.run_test(
+            "Get Friends List - User 1",
+            "GET",
+            f"friends/{self.test_user['id']}"
+        )
+        
+        self.run_test(
+            "Get Friends List - User 2",
+            "GET",
+            f"friends/{self.test_user2['id']}"
+        )
+    
+    def test_walk_invitations(self):
+        """Test walk invitation endpoints"""
+        print("\n=== Testing Walk Invitation System ===")
+        
+        if not self.test_user or not self.test_user2 or not self.test_route:
+            print("❌ Test users or route not available, skipping walk invitation tests")
+            return
+        
+        # Send walk invitation
+        invitation_data = {
+            "receiver_id": self.test_user2["id"],
+            "route_name": self.test_route["route_name"],
+            "start_point": self.test_route["start_point"],
+            "end_point": self.test_route["end_point"],
+            "city": self.test_route["city"],
+            "distance_km": self.test_route["distance_km"],
+            "message": "Let's go for a walk!"
+        }
+        
+        success, invitation = self.run_test(
+            "Send Walk Invitation",
+            "POST",
+            f"walk-invitations?sender_id={self.test_user['id']}",
+            data=invitation_data
+        )
+        
+        if not success:
+            print("❌ Walk invitation failed, skipping other invitation tests")
+            return
+            
+        # Get walk invitations for both users
+        self.run_test(
+            "Get Walk Invitations - Sender",
+            "GET",
+            f"walk-invitations/{self.test_user['id']}"
+        )
+        
+        self.run_test(
+            "Get Walk Invitations - Receiver",
+            "GET",
+            f"walk-invitations/{self.test_user2['id']}"
+        )
+        
+        # Accept walk invitation
+        self.run_test(
+            "Accept Walk Invitation",
+            "POST",
+            f"walk-invitations/respond/{invitation['id']}?action=accept"
+        )
+        
+        # Test declining a walk invitation (create a new one first)
+        success, invitation2 = self.run_test(
+            "Send Second Walk Invitation",
+            "POST",
+            f"walk-invitations?sender_id={self.test_user['id']}",
+            data=invitation_data
+        )
+        
+        if success:
+            self.run_test(
+                "Decline Walk Invitation",
+                "POST",
+                f"walk-invitations/respond/{invitation2['id']}?action=decline"
+            )
+    
+    def test_friends_activity(self):
+        """Test friends activity endpoint"""
+        print("\n=== Testing Friends Activity ===")
+        
+        if not self.test_user:
+            print("❌ Test user not available, skipping friends activity test")
+            return
+        
+        # Get friends activity
+        self.run_test(
+            "Get Friends Activity",
+            "GET",
+            f"friends/activity/{self.test_user['id']}"
+        )
 
     def print_summary(self):
         """Print a summary of all test results"""
@@ -230,6 +410,11 @@ def run_tests():
     tester.test_route_planning()
     tester.test_walking_system()
     tester.test_geocoding()
+    
+    # Test new friend system features
+    tester.test_friend_system()
+    tester.test_walk_invitations()
+    tester.test_friends_activity()
     
     # Print summary
     tester.print_summary()
