@@ -83,6 +83,52 @@ class Business(BaseModel):
     discount_offer: Optional[str] = None
     coins_required: int = 0
 
+class FriendRequest(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    sender_id: str
+    receiver_id: str
+    sender_name: str
+    receiver_name: str
+    status: str = "pending"  # pending, accepted, declined
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class FriendRequestCreate(BaseModel):
+    receiver_email: str
+
+class Friendship(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user1_id: str
+    user2_id: str
+    user1_name: str
+    user2_name: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class WalkInvitation(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    sender_id: str
+    receiver_id: str
+    sender_name: str
+    receiver_name: str
+    route_name: str
+    start_point: List[float]
+    end_point: List[float]
+    city: str
+    distance_km: float
+    proposed_time: Optional[str] = None
+    message: Optional[str] = None
+    status: str = "pending"  # pending, accepted, declined, completed
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class WalkInvitationCreate(BaseModel):
+    receiver_id: str
+    route_name: str
+    start_point: List[float]
+    end_point: List[float]
+    city: str
+    distance_km: float
+    proposed_time: Optional[str] = None
+    message: Optional[str] = None
+
 # City coordinates for German cities
 CITY_COORDS = {
     "regensburg": {"south": 49.0, "west": 12.0, "north": 49.1, "east": 12.2, "center": [12.12, 49.03]},
