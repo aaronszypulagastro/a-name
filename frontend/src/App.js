@@ -267,6 +267,15 @@ function App() {
     fetchPOIs(selectedCity);
   }, [selectedCity]);
 
+  useEffect(() => {
+    if (currentUser) {
+      fetchFriends();
+      fetchFriendRequests();
+      fetchWalkInvitations();
+      fetchFriendsActivity();
+    }
+  }, [currentUser]);
+
   // Handle map clicks for route planning
   const handleMapClick = (e) => {
     if (isWalking) {
