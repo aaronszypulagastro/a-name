@@ -1299,6 +1299,244 @@ function App() {
         </div>
       )}
 
+      {/* Social Feed Modal */}
+      {showSocial && currentUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">📱 Social Feed</h2>
+              <button
+                onClick={() => setShowSocial(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* Create Post */}
+            <div className="mb-4 p-3 bg-purple-50 rounded">
+              <h3 className="font-semibold mb-2">Share with the community</h3>
+              <textarea
+                placeholder="What's on your mind? Share your walking experience..."
+                value={newPostContent}
+                onChange={(e) => setNewPostContent(e.target.value)}
+                className="w-full p-2 border rounded resize-none"
+                rows="3"
+              />
+              <button
+                onClick={createSocialPost}
+                className="mt-2 bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+              >
+                📝 Share Post
+              </button>
+            </div>
+
+            {/* Social Feed */}
+            <div className="space-y-3">
+              {socialFeed.map((post) => (
+                <div key={post.id} className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <div className="font-semibold">{post.user_name}</div>
+                      <div className="text-xs text-gray-500">
+                        {new Date(post.created_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <span className="text-xs bg-gray-200 px-2 py-1 rounded">{post.post_type}</span>
+                  </div>
+                  <div className="text-sm mb-2">{post.content}</div>
+                  <div className="flex gap-4 text-xs text-gray-600">
+                    <button
+                      onClick={() => likePost(post.id)}
+                      className="hover:text-red-500"
+                    >
+                      ❤️ {post.likes_count} likes
+                    </button>
+                    <span>💬 {post.comments_count} comments</span>
+                  </div>
+                </div>
+              ))}
+              {socialFeed.length === 0 && (
+                <div className="text-center text-gray-500 py-8">
+                  No posts yet. Add friends and start sharing your walks!
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Walking Groups Modal */}
+      {showGroups && currentUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-4xl w-full mx-4 max-h-96 overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">👥 Walking Groups</h2>
+              <button
+                onClick={() => setShowGroups(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* Create Group */}
+            <div className="mb-6 p-4 bg-green-50 rounded-lg">
+              <h3 className="font-semibold mb-3">Create New Group</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  placeholder="Group name"
+                  value={newGroupData.name}
+                  onChange={(e) => setNewGroupData({...newGroupData, name: e.target.value})}
+                  className="p-2 border rounded"
+                />
+                <select
+                  value={newGroupData.city}
+                  onChange={(e) => setNewGroupData({...newGroupData, city: e.target.value})}
+                  className="p-2 border rounded"
+                >
+                  <option value="regensburg">Regensburg</option>
+                  <option value="deggendorf">Deggendorf</option>
+                  <option value="passau">Passau</option>
+                </select>
+              </div>
+              <textarea
+                placeholder="Group description"
+                value={newGroupData.description}
+                onChange={(e) => setNewGroupData({...newGroupData, description: e.target.value})}
+                className="w-full p-2 border rounded mt-3"
+                rows="2"
+              />
+              <button
+                onClick={createWalkingGroup}
+                className="mt-3 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+              >
+                🏗️ Create Group
+              </button>
+            </div>
+
+            {/* Available Groups */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {walkingGroups.map((group) => (
+                <div key={group.id} className="p-4 border rounded-lg">
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-semibold">{group.name}</h4>
+                    <span className="text-xs bg-green-100 px-2 py-1 rounded">{group.city}</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">{group.description}</p>
+                  <div className="flex justify-between items-center">
+                    <div className="text-xs text-gray-500">
+                      👤 {group.member_count}/{group.max_members} members<br/>
+                      📏 {group.total_distance_km}km total
+                    </div>
+                    <button
+                      onClick={() => joinWalkingGroup(group.id)}
+                      className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+                    >
+                      Join
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Challenges Modal */}
+      {showChallenges && currentUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-4xl w-full mx-4 max-h-96 overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">🏃‍♂️ Walking Challenges</h2>
+              <button
+                onClick={() => setShowChallenges(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* Create Challenge */}
+            <div className="mb-6 p-4 bg-red-50 rounded-lg">
+              <h3 className="font-semibold mb-3">Create New Challenge</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                <input
+                  type="text"
+                  placeholder="Challenge title"
+                  value={newChallengeData.title}
+                  onChange={(e) => setNewChallengeData({...newChallengeData, title: e.target.value})}
+                  className="p-2 border rounded"
+                />
+                <select
+                  value={newChallengeData.challenge_type}
+                  onChange={(e) => setNewChallengeData({...newChallengeData, challenge_type: e.target.value})}
+                  className="p-2 border rounded"
+                >
+                  <option value="distance">Distance Challenge</option>
+                  <option value="walks_count">Number of Walks</option>
+                  <option value="streak">Daily Streak</option>
+                </select>
+                <input
+                  type="number"
+                  placeholder="Target value"
+                  value={newChallengeData.target_value}
+                  onChange={(e) => setNewChallengeData({...newChallengeData, target_value: parseFloat(e.target.value)})}
+                  className="p-2 border rounded"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <input
+                  type="number"
+                  placeholder="Duration (days)"
+                  value={newChallengeData.duration_days}
+                  onChange={(e) => setNewChallengeData({...newChallengeData, duration_days: parseInt(e.target.value)})}
+                  className="p-2 border rounded"
+                />
+                <input
+                  type="text"
+                  placeholder="Description"
+                  value={newChallengeData.description}
+                  onChange={(e) => setNewChallengeData({...newChallengeData, description: e.target.value})}
+                  className="p-2 border rounded"
+                />
+              </div>
+              <button
+                onClick={createChallenge}
+                className="mt-3 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+              >
+                🚀 Create Challenge
+              </button>
+            </div>
+
+            {/* Active Challenges */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {challenges.map((challenge) => (
+                <div key={challenge.id} className="p-4 border rounded-lg">
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-semibold">{challenge.title}</h4>
+                    <span className="text-xs bg-red-100 px-2 py-1 rounded capitalize">{challenge.challenge_type}</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">{challenge.description}</p>
+                  <div className="text-sm mb-3">
+                    <div>🎯 Target: {challenge.target_value} {challenge.unit}</div>
+                    <div>⏰ Duration: {challenge.duration_days} days</div>
+                    <div>👥 Participants: {challenge.participants.length}</div>
+                  </div>
+                  <button
+                    onClick={() => joinChallenge(challenge.id)}
+                    className="bg-orange-500 text-white px-3 py-1 rounded text-sm hover:bg-orange-600"
+                  >
+                    Join Challenge
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* New Achievement Alert */}
       {newAchievementAlert && (
         <div className="fixed top-20 right-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white p-4 rounded-lg shadow-lg z-50 max-w-sm">
