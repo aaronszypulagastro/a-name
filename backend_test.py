@@ -455,6 +455,202 @@ class GoWalkingAPITester:
                     data=achievement_ids
                 )
 
+    def test_walking_groups(self):
+        """Test walking groups endpoints"""
+        print("\n=== Testing Walking Groups System ===")
+        
+        if not self.test_user:
+            print("❌ No test user available, skipping walking groups tests")
+            return
+        
+        # Create a walking group
+        group_data = {
+            "name": f"Test Walking Group {int(time.time())}",
+            "description": "A test walking group for API testing",
+            "city": "regensburg",
+            "is_public": True,
+            "max_members": 20
+        }
+        
+        success, group = self.run_test(
+            "Create Walking Group", 
+            "POST", 
+            f"groups?creator_id={self.test_user['id']}", 
+            data=group_data
+        )
+        
+        if not success:
+            print("❌ Group creation failed, skipping other group tests")
+            return
+            
+        # Get all walking groups
+        self.run_test(
+            "Get All Walking Groups", 
+            "GET", 
+            "groups"
+        )
+        
+        # Get walking groups by city
+        self.run_test(
+            "Get Walking Groups by City", 
+            "GET", 
+            f"groups?city={group_data['city']}"
+        )
+        
+        # Get specific walking group
+        self.run_test(
+            "Get Walking Group by ID", 
+            "GET", 
+            f"groups/{group['id']}"
+        )
+        
+        # Get user's groups
+        self.run_test(
+            "Get User's Walking Groups", 
+            "GET", 
+            f"groups/user/{self.test_user['id']}"
+        )
+        
+        if self.test_user2:
+            # Test joining a group
+            self.run_test(
+                "Join Walking Group", 
+                "POST", 
+                f"groups/{group['id']}/join?user_id={self.test_user2['id']}"
+            )
+            
+            # Verify user's groups after joining
+            self.run_test(
+                "Verify User's Groups After Joining", 
+                "GET", 
+                f"groups/user/{self.test_user2['id']}"
+            )
+
+    def test_challenges(self):
+        """Test challenges endpoints"""
+        print("\n=== Testing Challenges System ===")
+        
+        if not self.test_user:
+            print("❌ No test user available, skipping challenges tests")
+            return
+        
+        # Create a challenge
+        challenge_data = {
+            "title": f"Test Challenge {int(time.time())}",
+            "description": "A test challenge for API testing",
+            "challenge_type": "distance",
+            "target_value": 10.0,
+            "unit": "km",
+            "duration_days": 7,
+            "is_public": True
+        }
+        
+        success, challenge = self.run_test(
+            "Create Challenge", 
+            "POST", 
+            f"challenges?creator_id={self.test_user['id']}", 
+            data=challenge_data
+        )
+        
+        if not success:
+            print("❌ Challenge creation failed, skipping other challenge tests")
+            return
+            
+        # Get all challenges
+        self.run_test(
+            "Get All Challenges", 
+            "GET", 
+            "challenges"
+        )
+        
+        # Get challenge leaderboard
+        self.run_test(
+            "Get Challenge Leaderboard", 
+            "GET", 
+            f"challenges/{challenge['id']}/leaderboard"
+        )
+        
+        if self.test_user2:
+            # Test joining a challenge
+            self.run_test(
+                "Join Challenge", 
+                "POST", 
+                f"challenges/{challenge['id']}/join?user_id={self.test_user2['id']}"
+            )
+            
+            # Verify challenge leaderboard after joining
+            self.run_test(
+                "Verify Challenge Leaderboard After Joining", 
+                "GET", 
+                f"challenges/{challenge['id']}/leaderboard"
+            )
+
+    def test_social_feed(self):
+        """Test social feed endpoints"""
+        print("\n=== Testing Social Feed System ===")
+        
+        if not self.test_user:
+            print("❌ No test user available, skipping social feed tests")
+            return
+        
+        # Create a social post
+        post_data = {
+            "post_type": "general",
+            "content": f"Test post from API testing at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        }
+        
+        success, post = self.run_test(
+            "Create Social Post", 
+            "POST", 
+            f"social/posts?user_id={self.test_user['id']}", 
+            data=post_data
+        )
+        
+        if not success:
+            print("❌ Post creation failed, skipping other social feed tests")
+            return
+            
+        # Get user's social feed
+        self.run_test(
+            "Get User's Social Feed", 
+            "GET", 
+            f"social/feed/{self.test_user['id']}"
+        )
+        
+        # Get public feed
+        self.run_test(
+            "Get Public Feed", 
+            "GET", 
+            "social/posts/public"
+        )
+        
+        # Like a post
+        self.run_test(
+            "Like Post", 
+            "POST", 
+            f"social/posts/{post['id']}/like?user_id={self.test_user['id']}"
+        )
+        
+        # Add a comment to a post
+        comment_data = {
+            "content": "This is a test comment from API testing"
+        }
+        
+        success, comment = self.run_test(
+            "Add Comment to Post", 
+            "POST", 
+            f"social/posts/{post['id']}/comment?user_id={self.test_user['id']}", 
+            data=comment_data
+        )
+        
+        if success:
+            # Get post comments
+            self.run_test(
+                "Get Post Comments", 
+                "GET", 
+                f"social/posts/{post['id']}/comments"
+            )
+
     def print_summary(self):
         """Print a summary of all test results"""
         print("\n" + "="*50)
@@ -468,75 +664,6 @@ class GoWalkingAPITester:
                     print(f"- {result['name']} ({result['endpoint']}): {result.get('error', 'No error details')}")
         
         print("\n")
-
-def test_achievement_system(self):
-        """Test achievement system endpoints"""
-        print("\n=== Testing Achievement System ===")
-        
-        if not self.test_user:
-            print("❌ No test user available, skipping achievement tests")
-            return
-        
-        # Initialize achievements
-        self.run_test(
-            "Initialize Achievements", 
-            "GET", 
-            "achievements/initialize"
-        )
-        
-        # Get all achievements
-        self.run_test(
-            "Get All Achievements", 
-            "GET", 
-            "achievements"
-        )
-        
-        # Get user achievements
-        self.run_test(
-            "Get User Achievements", 
-            "GET", 
-            f"achievements/user/{self.test_user['id']}"
-        )
-        
-        # Get achievement progress
-        self.run_test(
-            "Get Achievement Progress", 
-            "GET", 
-            f"achievements/progress/{self.test_user['id']}"
-        )
-        
-        # Check for new achievements
-        self.run_test(
-            "Check User Achievements", 
-            "POST", 
-            f"achievements/check/{self.test_user['id']}"
-        )
-        
-        # Get achievement stats
-        self.run_test(
-            "Get Achievement Stats", 
-            "GET", 
-            f"achievements/stats/{self.test_user['id']}"
-        )
-        
-        # Mark achievements as seen
-        # First, get user achievements to find IDs to mark as seen
-        success, user_achievements = self.run_test(
-            "Get User Achievements for Marking", 
-            "GET", 
-            f"achievements/user/{self.test_user['id']}"
-        )
-        
-        if success and user_achievements:
-            achievement_ids = [ach["id"] for ach in user_achievements[:2]] if len(user_achievements) >= 2 else []
-            
-            if achievement_ids:
-                self.run_test(
-                    "Mark Achievements as Seen", 
-                    "POST", 
-                    f"achievements/mark-seen/{self.test_user['id']}", 
-                    data=achievement_ids
-                )
 
 def run_tests():
     tester = GoWalkingAPITester()
@@ -556,6 +683,11 @@ def run_tests():
     
     # Test achievement system
     tester.test_achievement_system()
+    
+    # Test enhanced social features
+    tester.test_walking_groups()
+    tester.test_challenges()
+    tester.test_social_feed()
     
     # Print summary
     tester.print_summary()
