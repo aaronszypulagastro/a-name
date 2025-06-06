@@ -397,6 +397,17 @@ function App() {
                 </div>
               </div>
               <button
+                onClick={() => setShowFriends(!showFriends)}
+                className="bg-blue-500 hover:bg-blue-700 px-3 py-2 rounded relative"
+              >
+                👥 Friends
+                {(friendRequests.received.length + walkInvitations.received.length) > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                    {friendRequests.received.length + walkInvitations.received.length}
+                  </span>
+                )}
+              </button>
+              <button
                 onClick={() => setShowProfile(!showProfile)}
                 className="bg-blue-500 hover:bg-blue-700 px-3 py-2 rounded"
               >
