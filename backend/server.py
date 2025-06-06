@@ -169,6 +169,138 @@ class AchievementProgress(BaseModel):
     progress_percentage: float
     is_completed: bool
 
+class WalkingGroup(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: str
+    city: str
+    creator_id: str
+    creator_name: str
+    is_public: bool = True
+    max_members: int = 50
+    member_count: int = 1
+    total_distance_km: float = 0.0
+    total_walks: int = 0
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class WalkingGroupCreate(BaseModel):
+    name: str
+    description: str
+    city: str
+    is_public: bool = True
+    max_members: int = 50
+
+class GroupMembership(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    group_id: str
+    user_id: str
+    user_name: str
+    role: str = "member"  # member, admin, creator
+    joined_at: datetime = Field(default_factory=datetime.utcnow)
+
+class Challenge(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    description: str
+    challenge_type: str  # distance, walks_count, streak, time_based
+    target_value: float
+    unit: str  # km, walks, days, minutes
+    duration_days: int
+    creator_id: str
+    creator_name: str
+    participants: List[str] = []
+    is_public: bool = True
+    start_date: datetime = Field(default_factory=datetime.utcnow)
+    end_date: datetime
+    status: str = "active"  # active, completed, cancelled
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class ChallengeCreate(BaseModel):
+    title: str
+    description: str
+    challenge_type: str
+    target_value: float
+    unit: str
+    duration_days: int
+    is_public: bool = True
+
+class ChallengeParticipation(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    challenge_id: str
+    user_id: str
+    user_name: str
+    current_progress: float = 0.0
+    is_completed: bool = False
+    joined_at: datetime = Field(default_factory=datetime.utcnow)
+    completed_at: Optional[datetime] = None
+
+class SocialPost(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    user_name: str
+    post_type: str  # walk_completed, achievement_earned, challenge_completed, general
+    content: str
+    walk_id: Optional[str] = None
+    achievement_id: Optional[str] = None
+    challenge_id: Optional[str] = None
+    image_url: Optional[str] = None
+    likes_count: int = 0
+    comments_count: int = 0
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class SocialPostCreate(BaseModel):
+    post_type: str
+    content: str
+    walk_id: Optional[str] = None
+    achievement_id: Optional[str] = None
+    challenge_id: Optional[str] = None
+    image_url: Optional[str] = None
+
+class PostLike(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    post_id: str
+    user_id: str
+    user_name: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class PostComment(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    post_id: str
+    user_id: str
+    user_name: str
+    content: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class PostCommentCreate(BaseModel):
+    content: str
+
+class GroupEvent(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    group_id: str
+    title: str
+    description: str
+    event_date: datetime
+    meeting_point: str
+    route_start: List[float]  # [lng, lat]
+    route_end: List[float]    # [lng, lat]
+    estimated_distance_km: float
+    max_participants: int = 20
+    participants: List[str] = []
+    creator_id: str
+    creator_name: str
+    status: str = "upcoming"  # upcoming, active, completed, cancelled
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class GroupEventCreate(BaseModel):
+    title: str
+    description: str
+    event_date: datetime
+    meeting_point: str
+    route_start: List[float]
+    route_end: List[float]
+    estimated_distance_km: float
+    max_participants: int = 20
+
 # City coordinates for German cities
 CITY_COORDS = {
     "regensburg": {"south": 49.0, "west": 12.0, "north": 49.1, "east": 12.2, "center": [12.12, 49.03]},
