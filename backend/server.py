@@ -154,11 +154,46 @@ async def get_users():
 @api_router.post("/route/calculate")
 async def calculate_route(request: RouteRequest):
     try:
-        # Mock route calculation for now (will replace with OpenRouteService)
         start_lng, start_lat = request.start
         end_lng, end_lat = request.end
         
-        # Simple distance calculation (rough estimate)
+        # Try OpenRouteService if API key is available
+        ors_api_key = os.environ.get('ORS_API_KEY')
+        
+        if ors_api_key:
+            try:
+                import openrouteservice as ors
+                client = ors.Client(key=ors_api_key)
+                
+                route = client.directions(
+                    coordinates=[request.start, request.end],
+                    profile='foot-walking',
+                    format='geojson',
+                    instructions=True
+                )
+                
+                if route and route.get('features'):
+                    feature = route['features'][0]
+                    properties = feature['properties']
+                    geometry = feature['geometry']['coordinates']
+                    
+                    distance_km = properties['summary']['distance'] / 1000
+                    duration_minutes = properties['summary']['duration'] / 60
+                    
+                    return {
+                        "success": True,
+                        "distance_km": round(distance_km, 2),
+                        "duration_minutes": int(duration_minutes),
+                        "route_geometry": geometry,
+                        "coins_to_earn": calculate_coins(distance_km),
+                        "source": "openrouteservice"
+                    }
+            except Exception as ors_error:
+                print(f"OpenRouteService error: {ors_error}")
+                # Fall back to mock calculation
+                pass
+        
+        # Fallback mock calculation
         distance_km = ((end_lng - start_lng) ** 2 + (end_lat - start_lat) ** 2) ** 0.5 * 111
         duration_minutes = int(distance_km * 12)  # ~12 minutes per km walking
         
@@ -174,7 +209,8 @@ async def calculate_route(request: RouteRequest):
             "distance_km": round(distance_km, 2),
             "duration_minutes": duration_minutes,
             "route_geometry": route_geometry,
-            "coins_to_earn": calculate_coins(distance_km)
+            "coins_to_earn": calculate_coins(distance_km),
+            "source": "mock"
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Route calculation error: {str(e)}")
