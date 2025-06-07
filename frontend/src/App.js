@@ -644,8 +644,381 @@ function App() {
     setWalkStartTime(null);
   };
 
+  // Tab navigation function
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'home':
+        return renderHomeTab();
+      case 'map':
+        return renderMapTab();
+      case 'deals':
+        return renderDealsTab();
+      case 'groups':
+        return renderGroupsTab();
+      case 'profile':
+        return renderProfileTab();
+      default:
+        return renderHomeTab();
+    }
+  };
+
+  // Tab content renderers
+  const renderHomeTab = () => (
+    <div className="flex-1 overflow-y-auto pb-20">
+      {/* Hero Section */}
+      <div className="hero-section">
+        <h1 className="hero-title">🚶‍♂️ Entdecke deine Stadt</h1>
+        <p className="hero-subtitle">Personalisierte Spaziergänge, versteckte Schätze und neue Freunde erwarten dich</p>
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Wohin möchtest du gehen? 🌍"
+            className="search-bar"
+          />
+          <button className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white text-xl">
+            🔍
+          </button>
+        </div>
+      </div>
+
+      {/* Horizontal Scroll Menu */}
+      <div className="px-4 mb-6">
+        <h2 className="text-xl font-bold mb-4 text-white">✨ Für dich empfohlen</h2>
+        <div className="scroll-menu">
+          {/* Guided Walks */}
+          <div className="scroll-item">
+            <div className="text-2xl mb-3">🧭</div>
+            <h3 className="font-bold text-lg mb-2 text-white">Geführte Spaziergänge</h3>
+            <p className="text-sm text-gray-300 mb-4">Entdecke {selectedCity} mit lokalen Geheimtipps</p>
+            <button 
+              className="btn-primary w-full"
+              onClick={() => setActiveTab('map')}
+            >
+              Jetzt erkunden
+            </button>
+          </div>
+
+          {/* Deals Nearby */}
+          <div className="scroll-item">
+            <div className="text-2xl mb-3">🥗</div>
+            <h3 className="font-bold text-lg mb-2 text-white">Deals in der Nähe</h3>
+            <p className="text-sm text-gray-300 mb-4">{pois.length} Angebote warten auf dich</p>
+            <button 
+              className="btn-secondary w-full"
+              onClick={() => setActiveTab('deals')}
+            >
+              Deals sichern
+            </button>
+          </div>
+
+          {/* Upcoming Events */}
+          <div className="scroll-item">
+            <div className="text-2xl mb-3">🎉</div>
+            <h3 className="font-bold text-lg mb-2 text-white">Events heute</h3>
+            <p className="text-sm text-gray-300 mb-4">{challenges.length} Gruppenerlebnisse verfügbar</p>
+            <button 
+              className="btn-accent w-full"
+              onClick={() => setActiveTab('groups')}
+            >
+              Mitmachen
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Stats */}
+      {currentUser && (
+        <div className="px-4 mb-6">
+          <h2 className="text-xl font-bold mb-4 text-white">📊 Deine Woche</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="modern-card text-center">
+              <div className="text-2xl mb-2">🪙</div>
+              <div className="text-2xl font-bold text-white mb-1">{currentUser.walk_coins}</div>
+              <div className="text-sm text-gray-300">WalkCoins</div>
+            </div>
+            <div className="modern-card text-center">
+              <div className="text-2xl mb-2">📏</div>
+              <div className="text-2xl font-bold text-white mb-1">{currentUser.total_distance_km.toFixed(1)}</div>
+              <div className="text-sm text-gray-300">Kilometer</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Friends Activity Preview */}
+      {friendsActivity.length > 0 && (
+        <div className="px-4 mb-6">
+          <h2 className="text-xl font-bold mb-4 text-white">👥 Freunde unterwegs</h2>
+          <div className="space-y-3">
+            {friendsActivity.slice(0, 3).map((activity, index) => (
+              <div key={index} className="modern-card">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center">
+                    <span className="text-white font-bold">
+                      {activity.friend_name.charAt(0)}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-white">{activity.friend_name}</div>
+                    <div className="text-sm text-gray-300">
+                      ging {activity.distance_km}km in {activity.city}
+                    </div>
+                  </div>
+                  <div className="text-sm text-yellow-400 font-bold">
+                    +{activity.coins_earned} 🪙
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderMapTab = () => (
+    <div className="flex flex-1 overflow-hidden">
+      {/* Map Sidebar */}
+      <div className="w-80 glass-card m-4 p-4 overflow-y-auto space-y-4 slide-up">
+        {/* City Selection */}
+        <div className="modern-card">
+          <label className="block text-sm font-semibold mb-3 text-white flex items-center gap-2">
+            <span className="text-lg">🌍</span>
+            Stadt wählen
+          </label>
+          <select
+            value={selectedCity}
+            onChange={(e) => setSelectedCity(e.target.value)}
+            className="input-modern"
+          >
+            <option value="regensburg">🏰 Regensburg</option>
+            <option value="deggendorf">🌊 Deggendorf</option>
+            <option value="passau">⛰️ Passau</option>
+          </select>
+        </div>
+
+        {/* POI Discovery */}
+        <div className="modern-card">
+          <label className="block text-sm font-semibold mb-3 text-white flex items-center gap-2">
+            <span className="text-lg">🔍</span>
+            Orte entdecken
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              onClick={() => fetchPOIs(selectedCity, 'restaurant')}
+              className="btn-secondary text-xs py-3 px-2 rounded-xl"
+            >
+              <div className="text-lg mb-1">🍽️</div>
+              Restaurants
+            </button>
+            <button
+              onClick={() => fetchPOIs(selectedCity, 'cafe')}
+              className="btn-accent text-xs py-3 px-2 rounded-xl"
+            >
+              <div className="text-lg mb-1">☕</div>
+              Cafés
+            </button>
+            <button
+              onClick={() => fetchPOIs(selectedCity, 'bar')}
+              className="btn-primary text-xs py-3 px-2 rounded-xl"
+            >
+              <div className="text-lg mb-1">🍺</div>
+              Bars
+            </button>
+          </div>
+        </div>
+
+        {/* Route Planning */}
+        {currentRoute && (
+          <div className="modern-card bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-2 border-purple-400/30 bounce-in">
+            <h3 className="font-bold text-lg mb-3 flex items-center gap-2 text-white">
+              <span className="text-2xl">📍</span>
+              Deine Route
+            </h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-300">Entfernung</span>
+                <span className="font-bold text-purple-400">{currentRoute.distance_km} km</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-300">Dauer</span>
+                <span className="font-bold text-pink-400">~{currentRoute.duration_minutes} min</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-300">WalkCoins</span>
+                <span className="font-bold text-yellow-400 flex items-center gap-1">
+                  <span>🪙</span> {currentRoute.coins_to_earn}
+                </span>
+              </div>
+              
+              {!isWalking ? (
+                <div className="space-y-2 mt-4">
+                  <button
+                    onClick={startWalk}
+                    className="w-full btn-success py-4 text-lg font-bold rounded-xl pulse-success"
+                  >
+                    🚀 Jetzt losgehen!
+                  </button>
+                  {friends.length > 0 && (
+                    <button
+                      onClick={() => setShowInviteFriend(true)}
+                      className="w-full btn-secondary py-3 text-sm rounded-xl"
+                    >
+                      👥 Freund einladen
+                    </button>
+                  )}
+                  <button
+                    onClick={clearRoute}
+                    className="w-full bg-gray-600 hover:bg-gray-500 text-white py-2 rounded-xl transition-all duration-300"
+                  >
+                    Route löschen
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-4">
+                  <div className="text-center text-green-400 font-bold mb-3 walking-indicator">
+                    <div className="text-2xl mb-2">🏃‍♂️</div>
+                    Du bist unterwegs...
+                  </div>
+                  <button
+                    onClick={finishWalk}
+                    className="w-full bg-gradient-to-r from-red-500 to-pink-600 text-white py-4 text-lg font-bold rounded-xl hover:from-red-600 hover:to-pink-700 transition-all duration-300"
+                  >
+                    🏁 Spaziergang beenden
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Instructions */}
+        <div className="modern-card bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-400/30">
+          <h4 className="font-bold text-sm mb-2 flex items-center gap-2 text-white">
+            <span className="text-lg">💡</span>
+            So funktioniert's
+          </h4>
+          <ul className="text-xs space-y-1 text-gray-300">
+            <li className="flex items-center gap-2">
+              <span className="text-blue-400">•</span>
+              Tippe zweimal auf die Karte für deine Route
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-green-400">•</span>
+              Gehe spazieren und sammle WalkCoins
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-purple-400">•</span>
+              Lade Freunde zu gemeinsamen Walks ein
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-pink-400">•</span>
+              Besuche Locations für exklusive Deals
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Map Container */}
+      <div className="flex-1 relative m-4 mr-4">
+        <div className="h-full w-full rounded-2xl overflow-hidden shadow-2xl">
+          <MapContainer
+            center={cityCenters[selectedCity]}
+            zoom={13}
+            style={{ height: '100%', width: '100%' }}
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            />
+            
+            <MapClickHandler onMapClick={handleMapClick} />
+            
+            {pois.map((poi) => (
+              <Marker
+                key={poi.id}
+                position={[poi.coordinates[1], poi.coordinates[0]]}
+                icon={businessIcon}
+              >
+                <Popup className="modern-popup">
+                  <div className="p-4 min-w-[250px]">
+                    <h4 className="font-bold text-lg mb-2 text-white">{poi.name}</h4>
+                    <p className="text-sm text-gray-300 capitalize mb-3 flex items-center gap-2">
+                      <span className="text-lg">🏪</span>
+                      {poi.amenity_type}
+                    </p>
+                    {poi.cuisine && (
+                      <p className="text-sm mb-3 flex items-center gap-2 text-gray-300">
+                        <span className="text-lg">🍴</span>
+                        <span className="font-medium">{poi.cuisine}</span>
+                      </p>
+                    )}
+                    {poi.discount_offer && (
+                      <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 p-3 rounded-xl border border-green-400/30 mb-3">
+                        <p className="text-sm font-bold text-green-400 flex items-center gap-2">
+                          <span className="text-lg">🎯</span>
+                          {poi.discount_offer}
+                        </p>
+                        <p className="text-xs text-green-300 mt-1 flex items-center gap-1">
+                          <span>🪙</span>
+                          Kostet: {poi.coins_required} WalkCoins
+                        </p>
+                      </div>
+                    )}
+                    {poi.opening_hours && (
+                      <p className="text-xs text-gray-400 flex items-center gap-2">
+                        <span>⏰</span> {poi.opening_hours}
+                      </p>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+            
+            {waypoints.map((point, index) => (
+              <Marker key={index} position={[point.lat, point.lng]}>
+                <Popup>
+                  <div className="p-2 text-center">
+                    <div className="text-lg mb-1 text-white">
+                      {index === 0 ? '🟢 Start' : '🔴 Ziel'}
+                    </div>
+                    <div className="text-sm text-gray-300">
+                      {point.lat.toFixed(4)}, {point.lng.toFixed(4)}
+                    </div>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+            
+            {currentRoute && <RouteLine route={currentRoute} />}
+          </MapContainer>
+        </div>
+        
+        {waypoints.length === 0 && (
+          <div className="absolute top-4 left-4 right-4 glass-card p-4 text-center fade-in">
+            <div className="text-lg mb-2">🗺️</div>
+            <p className="text-sm font-medium text-white">
+              Tippe auf die Karte um deine Route zu planen
+            </p>
+            <p className="text-xs text-gray-300 mt-1">
+              Zwei Tipps erstellen Start- und Endpunkt
+            </p>
+          </div>
+        )}
+        
+        {waypoints.length === 1 && (
+          <div className="absolute top-4 left-4 right-4 glass-card p-4 text-center bounce-in">
+            <div className="text-lg mb-2">✨</div>
+            <p className="text-sm font-medium text-white">
+              Perfekt! Jetzt tippe für dein Ziel
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="h-screen w-full flex flex-col bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       {/* Modern Status Bar */}
       <div className="status-bar">
         <div className="flex items-center gap-2">
