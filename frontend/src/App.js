@@ -1019,97 +1019,68 @@ function App() {
   );
 
   return (
-      {/* Modern Status Bar */}
-      <div className="status-bar">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">🚶‍♂️</span>
-          <span>GoWalking</span>
-        </div>
+    <div className="h-screen w-full flex flex-col">
+      {/* Main Content */}
+      <div className="flex-1 overflow-hidden">
+        {renderTabContent()}
       </div>
 
-      {/* Modern Header with Glass Effect */}
-      <header className="glass-header p-4 shadow-lg relative z-50">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center shadow-lg">
-              <span className="text-white text-xl font-bold">🚶‍♂️</span>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                GoWalking
-              </h1>
-              <p className="text-sm text-gray-600">Explore • Walk • Connect</p>
-            </div>
-          </div>
-          
-          {currentUser && (
-            <div className="flex items-center gap-2">
-              <div className="text-right hidden sm:block">
-                <div className="font-semibold text-gray-800">{currentUser.name}</div>
-                <div className="text-sm text-gray-600 flex items-center gap-2">
-                  <span className="flex items-center gap-1">
-                    <span className="text-yellow-500">🪙</span>
-                    {currentUser.walk_coins}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <span className="text-blue-500">📏</span>
-                    {currentUser.total_distance_km.toFixed(1)}km
-                  </span>
-                </div>
-              </div>
-              
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setShowFriends(!showFriends)}
-                  className="btn-modern relative p-3 rounded-full"
-                  title="Friends"
-                >
-                  <span className="text-lg">👥</span>
-                  {(friendRequests.received.length + walkInvitations.received.length) > 0 && (
-                    <span className="badge-modern">
-                      {friendRequests.received.length + walkInvitations.received.length}
-                    </span>
-                  )}
-                </button>
-                
-                <button
-                  onClick={() => setShowAchievements(!showAchievements)}
-                  className="btn-warning relative p-3 rounded-full"
-                  title="Achievements"
-                >
-                  <span className="text-lg">🏆</span>
-                  {achievementStats && (
-                    <span className="badge-modern bg-gradient-to-r from-green-400 to-blue-500">
-                      {achievementStats.total_achievements}
-                    </span>
-                  )}
-                </button>
-                
-                <button
-                  onClick={() => setShowSocial(!showSocial)}
-                  className="btn-secondary relative p-3 rounded-full"
-                  title="Social"
-                >
-                  <span className="text-lg">📱</span>
-                  {socialFeed.length > 0 && (
-                    <span className="badge-modern bg-gradient-to-r from-pink-400 to-purple-500">
-                      {socialFeed.length}
-                    </span>
-                  )}
-                </button>
-                
-                <button
-                  onClick={() => setShowProfile(!showProfile)}
-                  className="p-3 rounded-full bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 transition-all duration-300"
-                  title="Profile"
-                >
-                  <span className="text-lg">👤</span>
-                </button>
-              </div>
-            </div>
+      {/* Bottom Navigation - NeoTaste Style */}
+      <nav className="bottom-nav">
+        <button
+          className={`nav-item ${activeTab === 'home' ? 'active' : ''}`}
+          onClick={() => setActiveTab('home')}
+        >
+          <div className="nav-icon">🏠</div>
+          <div className="nav-label">Entdecken</div>
+        </button>
+        
+        <button
+          className={`nav-item ${activeTab === 'map' ? 'active' : ''}`}
+          onClick={() => setActiveTab('map')}
+        >
+          <div className="nav-icon">🗺️</div>
+          <div className="nav-label">Karte</div>
+        </button>
+        
+        <button
+          className={`nav-item ${activeTab === 'deals' ? 'active' : ''}`}
+          onClick={() => setActiveTab('deals')}
+        >
+          <div className="nav-icon">🍴</div>
+          <div className="nav-label">Deals</div>
+          {pois.length > 0 && (
+            <span className="badge-modern">{pois.length}</span>
           )}
-        </div>
-      </header>
+        </button>
+        
+        <button
+          className={`nav-item ${activeTab === 'groups' ? 'active' : ''}`}
+          onClick={() => setActiveTab('groups')}
+        >
+          <div className="nav-icon">👥</div>
+          <div className="nav-label">Gruppen</div>
+          {(walkingGroups.length + challenges.length) > 0 && (
+            <span className="badge-modern">{walkingGroups.length + challenges.length}</span>
+          )}
+        </button>
+        
+        <button
+          className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
+          onClick={() => setActiveTab('profile')}
+        >
+          <div className="nav-icon">👤</div>
+          <div className="nav-label">Profil</div>
+          {achievementStats && achievementStats.total_achievements > 0 && (
+            <span className="badge-modern">{achievementStats.total_achievements}</span>
+          )}
+        </button>
+      </nav>
+
+      {/* Floating Action Button */}
+      <button className="fab floating" onClick={() => setActiveTab('map')}>
+        ➕
+      </button>
 
       <div className="flex flex-1 overflow-hidden">
         {/* Modern Sidebar with Glass Effect */}
