@@ -536,6 +536,79 @@ function App() {
     fetchChallenges();
   }, [selectedCity]);
 
+  // PWA Service Worker Registration
+  useEffect(() => {
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('✅ Service Worker registered successfully:', registration.scope);
+          })
+          .catch((error) => {
+            console.error('❌ Service Worker registration failed:', error);
+          });
+      });
+    }
+
+    // Listen for Service Worker messages
+    navigator.serviceWorker?.addEventListener('message', (event) => {
+      const { type, data } = event.data;
+      
+      if (type === 'INSTALL_PROMPT_AVAILABLE') {
+        setInstallPrompt(data.event);
+      } else if (type === 'APP_INSTALLED') {
+        setIsInstalled(true);
+        setInstallPrompt(null);
+      }
+    });
+
+    // Listen for install prompt
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+
+    // Listen for app installed
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setInstallPrompt(null);
+    };
+
+    // Online/Offline status
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Check if already installed
+    if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // PWA Install Handler
+  const handleInstallApp = async () => {
+    if (!installPrompt) return;
+
+    const result = await installPrompt.prompt();
+    console.log('Install prompt result:', result.outcome);
+    
+    if (result.outcome === 'accepted') {
+      setInstallPrompt(null);
+    }
+  };
+
   // Handle map clicks for route planning
   const handleMapClick = (e) => {
     if (isWalking) {
