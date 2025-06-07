@@ -92,6 +92,7 @@ function App() {
   const [userAchievements, setUserAchievements] = useState([]);
   const [achievementProgress, setAchievementProgress] = useState([]);
   const [achievementStats, setAchievementStats] = useState(null);
+  const [newAchievementAlert, setNewAchievementAlert] = useState(null);
   const [activeTab, setActiveTab] = useState('home');
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showSocial, setShowSocial] = useState(false);
