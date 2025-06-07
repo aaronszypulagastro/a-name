@@ -95,6 +95,9 @@ function App() {
   const [newAchievementAlert, setNewAchievementAlert] = useState(null);
   const [activeTab, setActiveTab] = useState('home');
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showSocial, setShowSocial] = useState(false);
   const [showGroups, setShowGroups] = useState(false);
   const [showChallenges, setShowChallenges] = useState(false);
